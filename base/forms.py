@@ -1,10 +1,27 @@
 from django import forms
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 from .models import Student, Instructor, Venue, Seminar, SeminarRegistration, SeminarGroup
 
-# This file contains forms for the models defined in the models.py file and it validates the data from the user templates 
-# Form for creating/updating a User account (used in both student/instructor creation)
+# --- User creation with extra fields for registration ---
 
+class StudentRegistrationForm(UserCreationForm):
+    registration_number = forms.CharField(max_length=20)
+    phone_number = forms.CharField(max_length=15)
+
+    class Meta: 
+        model = User
+        fields = ['username', 'email', 'password1', 'password2']  
+
+class InstructorRegistrationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password1', 'password2']
+
+
+
+
+# User form (can be used for admin-level updates)
 class UserForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
 
@@ -13,18 +30,18 @@ class UserForm(forms.ModelForm):
         fields = ['username', 'email', 'password']
 
 
-# Student form
+# Student form (used by admin or in a multi-step registration)
 class StudentForm(forms.ModelForm):
     class Meta:
         model = Student
         fields = ['registration_number', 'phone_number']
 
 
-# Instructor form
+# Instructor form (no extra fields)
 class InstructorForm(forms.ModelForm):
     class Meta:
         model = Instructor
-        fields = []  # No extra fields apart from linked user
+        fields = []
 
 
 # Venue form
@@ -48,11 +65,11 @@ class SeminarRegistrationForm(forms.ModelForm):
         fields = ['student', 'seminar']
 
 
-# Seminar Group form
+# Seminar group form
 class SeminarGroupForm(forms.ModelForm):
     class Meta:
         model = SeminarGroup
-        fields = ['group_number', 'seminar', 'instructor', 'student']
+        fields = ['group_number', 'seminar', 'instructor', 'students']
         widgets = {
-            'student': forms.CheckboxSelectMultiple(),  # for group assignment to multiple students 
+            'student': forms.CheckboxSelectMultiple(),
         }

@@ -1,0 +1,22 @@
+<!-- templates/students_templates/profile.html -->
+{% extends 'main/base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm mx-auto" style="max-width: 600px;">
+    <div class="card-body">
+        <h3 class="card-title text-center mb-4">Student Profile</h3>
+
+        <p><strong>Name:</strong> {{ student.user.first_name }} {{ student.user.last_name }}</p>
+        <p><strong>Username:</strong> {{ student.user.username }}</p>
+        <p><strong>Email:</strong> {{ student.user.email }}</p>
+        <p><strong>Registration Number:</strong> {{ student.registration_number }}</p>
+        <p><strong>Phone Number:</strong> {{ student.phone_number }}</p>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'student_dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

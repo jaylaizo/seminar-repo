@@ -1,0 +1,69 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Welcome, {{ student.user.first_name }}!</h2>
+
+<!-- Registered Seminars -->
+<div class="mb-5">
+    <h4>Your Registered Seminars</h4>
+    {% if registered_seminars %}
+        <ul class="list-group">
+            {% for reg in registered_seminars %}
+            <li class="list-group-item">
+                {{ reg.seminar.course_code }} - {{ reg.seminar.day }} at {{ reg.seminar.time }}
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="alert alert-info">You haven't registered for any seminars yet.</div>
+    {% endif %}
+</div>
+
+<!-- Available Seminars -->
+<div class="mb-5">
+    <h4>Available Seminars</h4>
+    {% if available_seminars %}
+        <div class="row">
+            {% for seminar in available_seminars %}
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ seminar.course_code }}</h5>
+                        <p class="card-text">
+                            <strong>Day:</strong> {{ seminar.day }}<br>
+                            <strong>Time:</strong> {{ seminar.time }}<br>
+                            <strong>Venue:</strong> {{ seminar.venue.venue_name }}
+                        </p>
+                        <a href="{% url 'register_for_seminar' seminar.id %}" class="btn btn-success btn-sm">Register</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">No seminars available at the moment.</div>
+    {% endif %}
+</div>
+
+<!-- Seminar Groups -->
+<div class="mb-5">
+    <h4>Your Seminar Group(s)</h4>
+    {% if seminar_groups %}
+        <ul class="list-group">
+            {% for group in seminar_groups %}
+            <li class="list-group-item">
+                Group {{ group.group_number }} - Seminar: {{ group.seminar.course_code }}
+                {% if group.instructor %}
+                <br><small><strong>Instructor:</strong> {{ group.instructor.user.get_full_name }}</small>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="alert alert-warning">You are not assigned to any seminar group yet.</div>
+    {% endif %}
+</div>
+
+{% endblock %}

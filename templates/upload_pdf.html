@@ -1,0 +1,26 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Upload PDF Files{% endblock %}
+
+{% block content %}
+    <h1>Upload PDF Files</h1>
+
+    {% if messages %}
+        <div class="alert alert-info">
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="pdf_files" class="form-label">Select PDF file(s):</label>
+            <input type="file" name="pdf_files" accept="application/pdf" multiple required class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+{% endblock %}
