@@ -1,0 +1,13 @@
+<h3>Registered Seminars</h3>
+<hr>
+{% if registered_seminars %}
+    <ul class="list-group">
+        {% for reg in registered_seminars %}
+            <li class="list-group-item">
+                {{ reg.seminar.course_code }} - {{ reg.seminar.day }} at {{ reg.seminar.time }} ({{ reg.seminar.venue.name }})
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>You haven't registered for any seminars yet.</p>
+{% endif %}

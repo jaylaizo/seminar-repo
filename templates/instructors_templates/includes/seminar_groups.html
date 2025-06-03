@@ -1,0 +1,26 @@
+<div class="container mt-4">
+    <h3 class="mb-3">Seminar: {{ seminar.course_code }}</h3>
+
+    {% if groups %}
+        {% for group in groups %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    Group {{ group.group_number }}
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for student in group.students.all %}
+                        <li class="list-group-item">
+                            {{ student.user.get_full_name|default:student.user.username }} 
+                            ({{ student.registration_number }})
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item text-muted">No members in this group.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+        <a href="{% url 'export_groups_pdf' seminar.id %}" class="btn btn-outline-success mt-3">Export Groups to PDF</a>
+    {% else %}
+        <p class="text-muted">No groups found for this seminar.</p>
+    {% endif %}
+</div>

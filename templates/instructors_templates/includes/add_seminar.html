@@ -1,0 +1,50 @@
+<h3 class="mb-4 text-center">Add a New Seminar</h3>
+
+{% if form.errors %}
+    <div class="alert alert-danger">
+        <ul>
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="mb-3">
+        {{ form.course_code.label_tag }}
+        {{ form.course_code }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.day.label_tag }}
+        {{ form.day }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.time.label_tag }}
+        {{ form.time }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.venue.label_tag }}
+        {{ form.venue }}
+    </div>
+
+    <div class="mb-3">
+        <label>{{ form.eligible_programs.label }}</label>
+        <div class="form-check">
+            {% for checkbox in form.eligible_programs %}
+                <div class="form-check">
+                    {{ checkbox.tag }} {{ checkbox.choice_label }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">Add Seminar</button>
+</form>

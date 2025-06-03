@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'base.apps.BaseConfig',
+    'django_extensions',  
 ]
 
 MIDDLEWARE = [
@@ -112,6 +113,8 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
+LOGIN_URL = 'login'  # URL to redirect to for login
 
 
 # Static files (CSS, JavaScript, Images)

@@ -7,6 +7,7 @@ import fitz  # PyMuPDF
 import re
 import pdb
 
+
 def readPdfFile(files):
     all_results = []
 
@@ -16,31 +17,34 @@ def readPdfFile(files):
             for page in doc:
                 text += page.get_text()
 
-        # Extract time slots from the header
+        print(text[:1000])  # Debug first 1000 characters
+
+        # Extract time slots
         time_slots = re.findall(r'\d{2}:\d{2} \d{2}:\d{2}', text)
-        
-        
-        print(time_slots)
-        pdb.set_trace()
 
-        # Extract seminar blocks: 3 lines under each "Seminar"
-        seminar_blocks = re.findall(r'Seminar\s+(.*?)\n(.*?)\n(.*?)(?:\n|$)', text)
+        # Try simpler block match
+        seminar_blocks = re.findall(r'Seminar\s+(.*)', text)
 
-        for i, block in enumerate(seminar_blocks):
-            course_lines = [line.strip() for line in block]
-            course_text = ' '.join(course_lines)
+        print(seminar_blocks)  # Debug
+
+        for i, course_text in enumerate(seminar_blocks):
             course_text = re.sub(r'\s{2,}', ' ', course_text).strip()
-
             if i < len(time_slots):
                 all_results.append({
                     'course': course_text,
                     'time': time_slots[i]
                 })
 
-    print(all_results)
-    pdb.set_trace()
 
+    print(all_results) 
+    
     return all_results
+
+
+      
+
+    
+
 
 
 

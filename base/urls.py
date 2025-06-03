@@ -1,22 +1,36 @@
 from django.urls import path
+from django.shortcuts import redirect 
 from django.contrib.auth import views as auth_views 
-from . views import UserLoginView, UserLogoutView, StudentRegisterView, InstructorRegisterView 
+from . views import UserLoginView, UserLogoutView, StudentRegisterView, InstructorRegisterView, InstructorRegisterView
 from .seminar_views import TeachingTimetableView
-
-
+from .instructor_views import InstructorDashboardView, SeminarGroupMembersView, export_group_members, AddSeminarView, InstructorSeminarsView
 from . import student_views
+from .venue_views import add_venue
+
+
 urlpatterns = [
-    
+    path('', lambda request: redirect('login', permanent=False)), 
     path('login/', UserLoginView.as_view(), name='login'),
     path('logout/', UserLogoutView.as_view(), name='logout'),
-    path('register/student/', StudentRegisterView.as_view(), name='student_register'),
+    
+    path('add-venue/', add_venue, name='add_venue'),
+    
+    
+    path('instructor/dashboard/', InstructorDashboardView.as_view(), name='instructor_dashboard'),
+    path('instructor/add-seminar/', AddSeminarView.as_view(), name='add_seminar'),
+    path('instructor/seminars/', InstructorSeminarsView.as_view(), name='seminar_list'),
+    path('instructor/seminar/<int:seminar_id>/groups/', SeminarGroupMembersView.as_view(), name='seminar_groups'),
+    path('instructor/seminar/<int:seminar_id>/export/', export_group_members, name='export_group_members'),
     path('register/instructor/', InstructorRegisterView.as_view(), name='instructor_register'),
     
+    #student-related URLs
     path('upload_pdf/',TeachingTimetableView.as_view(), name='upload_pdf'),
+    path('register/student/', StudentRegisterView.as_view(), name='student_register'),
     path('student/dashboard/', student_views.student_dashboard, name='student_dashboard'),
     path('student/profile/', student_views.view_profile, name='view_profile'),
     path('student/seminars/', student_views.available_seminars, name='available_seminars'),
-    path('student/seminar/register/<int:seminar_id>/', student_views.register_for_seminar, name='register_for_seminar'),
-    path('student/groups/', student_views.view_my_groups, name='view_my_groups'),
+    path('student/seminar/register/<int:seminar_id>/', student_views.register_for_seminar, name='register_seminar'),
+    path('student/registered-seminars/', student_views.registered_seminars, name='registered_seminars'),
+    path('student/groups/', student_views.view_my_groups, name='my_groups'),
 ]
 

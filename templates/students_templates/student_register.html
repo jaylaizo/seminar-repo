@@ -3,7 +3,6 @@
 {% block title %}Student Registration{% endblock %}
 
 {% block content %}
-
 <style>
     .registration-form {
         max-width: 500px;
@@ -14,7 +13,8 @@
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
 
-    .registration-form input {
+    .registration-form input,
+    .registration-form select {
         font-size: 0.9rem;
         padding: 0.6rem;
     }
@@ -41,7 +41,7 @@
 
         <!-- Email -->
         <div class="mb-3">
-            <input type="email" name="email" class="form-control" placeholder="@ your E-mail" required>
+            <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
         </div>
 
         <!-- Password1 -->
@@ -64,14 +64,24 @@
             <input type="tel" name="phone_number" class="form-control" placeholder="e.g. +255 712 345 678" required>
         </div>
 
+        <!-- Program Dropdown -->
+        <div class="mb-3">
+            <select name="program" class="form-select" required>
+                <option value="" disabled selected>Select your program</option>
+                <option value="BScEd">Bachelor of Science with Education</option>
+                <option value="BAEd">Bachelor of Arts with Education</option>
+                <option value="BEdSci">Bachelor of Education in Science</option>
+                <option value="BEdArts">Bachelor of Education in Arts</option>
+            </select>
+        </div>
+
         <button type="submit" class="btn btn-success w-100">Register</button>
     </form>
 </div>
 
-<!-- Optional JS for client-side validation -->
 <script>
     document.querySelector("form").addEventListener("submit", function (e) {
-        const inputs = document.querySelectorAll("input[required]");
+        const inputs = document.querySelectorAll("input[required], select[required]");
         let valid = true;
 
         inputs.forEach(input => {
@@ -88,5 +98,4 @@
         }
     });
 </script>
-
 {% endblock %}

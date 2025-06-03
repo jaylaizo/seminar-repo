@@ -1,12 +1,17 @@
-{% extends 'main/base.html' %}
+{% extends "main/base.html" %}
 
-{% block title %}Student Dashboard{% endblock %}
+{% block title %}Instructor Dashboard{% endblock %}
 
 {% block extra_css %}
 <style>
+    body {
+        margin: 0;
+    }
+
     .layout-wrapper {
         display: flex;
         margin-top: 0;
+        min-height: calc(100vh - 56px); /* navbar height */
     }
 
     .sidebar-wrapper {
@@ -15,7 +20,8 @@
         background-color: #0277BD;
         transition: width 0.3s ease;
         width: 220px;
-        min-height: calc(100vh - 56px); /* navbar height */
+        min-height: 100vh;
+        position: relative;
     }
 
     .sidebar-wrapper.collapsed {
@@ -85,7 +91,7 @@
         flex-grow: 1;
         padding: 2rem;
         background-color: #f8f9fa;
-        min-height: calc(100vh - 56px);
+        min-height: 100vh;
     }
 </style>
 {% endblock %}
@@ -97,34 +103,32 @@
     <div class="sidebar-wrapper" id="sidebarWrapper">
         <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
         <div class="sidebar">
-            <h5>Student Panel</h5>
-            <a href="#" class="sidebar-link" data-url="{% url 'view_profile' %}">
-                <i class="bi bi-person-circle"></i>
-                <span>Profile</span>
+            <h5>Instructor Panel</h5>
+
+            <a href="#" class="sidebar-link" data-url="{% url 'add_seminar' %}">
+                <i class="bi bi-plus-circle-fill"></i>
+                <span>Add New Seminar</span>
             </a>
-            <a href="#" class="sidebar-link" data-url="{% url 'available_seminars' %}">
+
+            <a href="#" class="sidebar-link" data-url="{% url 'seminar_list' %}">
                 <i class="bi bi-journal-bookmark-fill"></i>
                 <span>Seminars</span>
             </a>
-            <a href="#" class="sidebar-link" data-url="{% url 'my_groups' %}">
-                <i class="bi bi-people-fill"></i>
-                <span>My Groups</span>
-            </a>
-            <a href="#" class="sidebar-link" data-url="{% url 'registered_seminars' %}">
-                <i class="bi bi-check-circle-fill"></i>
-                <span>Registered Seminars</span>
-            </a>
+
             <a href="{% url 'logout' %}">
                 <i class="bi bi-box-arrow-right"></i>
                 <span>Logout</span>
             </a>
         </div>
+        <footer class="text-center py-3 text-white" style="background-color: #0277BD;">
+            <small>© <span id="year">SMS</span></small>
+        </footer>
     </div>
 
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
-        <h3>Welcome to Seminar Management System, {{ student.user.first_name }}</h3>
-        <p>Select an option from the sidebar to get started.</p>
+        <h3>Welcome, {{ request.user.first_name|default:request.user.username }}</h3>
+        <p class="text-muted">SEMINAR MANAGEMENT SYSTEM</p>
     </div>
 </div>
 {% endblock %}
@@ -136,33 +140,64 @@
         wrapper.classList.toggle('collapsed');
     }
 
+    document.getElementById('year').textContent = new Date().getFullYear();
+
     document.addEventListener("DOMContentLoaded", function () {
-        const links = document.querySelectorAll(".sidebar-link");
+        const sidebarLinks = document.querySelectorAll(".sidebar-link");
         const mainContent = document.getElementById("mainContent");
 
-        links.forEach(link => {
+        const defaultContent = mainContent.innerHTML;
+
+        function loadContent(url) {
+            fetch(url, {
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Failed to load content");
+                return response.text();
+            })
+            .then(html => {
+                mainContent.innerHTML = html;
+            })
+            .catch(err => {
+                mainContent.innerHTML = `<div class="alert alert-danger">Error loading content.</div>`;
+                console.error(err);
+            });
+        }
+
+        sidebarLinks.forEach(link => {
             link.addEventListener("click", function (e) {
                 e.preventDefault();
                 const url = this.dataset.url;
                 if (!url) return;
 
-                fetch(url, {
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest"
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error("Failed to load content");
-                    return response.text();
-                })
-                .then(html => {
-                    mainContent.innerHTML = html;
-                })
-                .catch(err => {
-                    mainContent.innerHTML = `<div class="alert alert-danger">Error loading content.</div>`;
-                    console.error(err);
-                });
+                history.pushState({ url: url }, "", url);
+                loadContent(url);
             });
+        });
+
+        window.addEventListener("popstate", function (event) {
+            const url = event.state?.url;
+            if (url) {
+                loadContent(url);
+            } else {
+                mainContent.innerHTML = defaultContent;
+            }
+        });
+
+        // Handle dynamic .ajax-link clicks (e.g. "View Groups")
+        document.addEventListener("click", function (e) {
+            const target = e.target.closest(".ajax-link");
+            if (target) {
+                e.preventDefault();
+                const url = target.dataset.url;
+                if (!url) return;
+
+                history.pushState({ url: url }, "", url);
+                loadContent(url);
+            }
         });
     });
 </script>

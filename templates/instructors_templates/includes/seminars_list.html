@@ -1,0 +1,27 @@
+{% for seminar in seminars %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">{{ seminar.course_code }}</h5>
+            <p class="card-text">
+                <strong>Day:</strong> {{ seminar.day }}<br>
+                <strong>Time:</strong> {{ seminar.time }}<br>
+                <strong>Venue:</strong> {{ seminar.venue.venue_name}}<br>
+                <strong>venue_capacity</strong>{{ seminar.venue.venue_capacity }}<br>
+                <strong>Registered:</strong> {{ seminar.seminarregistration_set.count }}<br>
+            </p>
+            
+            <!-- View Groups Button -->
+            <a href="#" 
+                class="btn btn-sm btn-primary ajax-link" 
+                data-url="{% url 'seminar_groups' seminar.id %}">
+                View Groups
+            </a>
+
+
+
+            
+        </div>
+    </div>
+{% empty %}
+    <p>No seminars found.</p>
+{% endfor %}

@@ -11,6 +11,7 @@ from .forms import StudentRegistrationForm, InstructorRegistrationForm
 from base.models import Student, Instructor
 
 
+
 # Login view
 class UserLoginView(FormView):
     template_name = 'main/login.html'
@@ -30,6 +31,8 @@ class UserLoginView(FormView):
             return redirect('admin:index')
 
 
+
+
 # Logout view
 class UserLogoutView(LoginRequiredMixin, View):
     def get(self, request):
@@ -37,7 +40,6 @@ class UserLogoutView(LoginRequiredMixin, View):
         return redirect('login')
 
 
-# Student Registration View
 class StudentRegisterView(FormView):
     template_name = 'students_templates/student_register.html'
     form_class = StudentRegistrationForm
@@ -48,13 +50,13 @@ class StudentRegisterView(FormView):
         Student.objects.create(
             user=user,
             registration_number=form.cleaned_data['registration_number'],
-            phone_number=form.cleaned_data['phone_number']
+            phone_number=form.cleaned_data['phone_number'],
+            program=form.cleaned_data['program']
         )
         messages.success(self.request, 'Student registered successfully.')
-        return super().form_valid(form)
+        return redirect(self.get_success_url())
 
 
-# Instructor Registration View
 class InstructorRegisterView(FormView):
     template_name = 'instructors_templates/instructor_register.html'
     form_class = InstructorRegistrationForm
@@ -63,5 +65,7 @@ class InstructorRegisterView(FormView):
     def form_valid(self, form):
         user = form.save()
         Instructor.objects.create(user=user)
+        user=user,
+        check_number=form.cleaned_data['check_number'],
         messages.success(self.request, 'Instructor registered successfully.')
-        return super().form_valid(form)
+        return redirect(self.get_success_url())

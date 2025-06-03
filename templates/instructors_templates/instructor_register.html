@@ -3,12 +3,105 @@
 {% block title %}Instructor Registration{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Register as Instructor</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ user_form.as_p }}
-    {{ instructor_form.as_p }}
-    <button type="submit" class="btn btn-success">Register</button>
-   
-</form>
+<style>
+    .registration-box {
+        max-width: 500px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: #f9f9f9;
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .registration-box input {
+        font-size: 0.95rem;
+        padding: 0.6rem;
+    }
+
+    .registration-box button {
+        padding: 0.6rem;
+    }
+
+    h3 {
+        font-size: 1.5rem;
+    }
+
+    .is-invalid {
+        border-color: #dc3545;
+    }
+</style>
+
+<div class="registration-box">
+    <h3 class="mb-4 text-center">Register as Instructor</h3>
+
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% endif %}
+
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <!-- Username -->
+        <div class="mb-3">
+            <input type="text" name="username" class="form-control{% if form.username.errors %} is-invalid{% endif %}" placeholder="Enter username" value="{{ form.username.value|default:'' }}" required>
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3">
+            <input type="email" name="email" class="form-control{% if form.email.errors %} is-invalid{% endif %}" placeholder="Email address" value="{{ form.email.value|default:'' }}" required>
+        </div>
+
+        <!-- Check Number -->
+        <div class="mb-3">
+            <input type="text" name="check_number" class="form-control{% if form.check_number.errors %} is-invalid{% endif %}" placeholder="Enter check number" value="{{ form.check_number.value|default:'' }}" required>
+        </div>
+
+        <!-- Password1 -->
+        <div class="mb-3">
+            <input type="password" name="password1" class="form-control{% if form.password1.errors %} is-invalid{% endif %}" placeholder="Password" required>
+        </div>
+
+        <!-- Password2 -->
+        <div class="mb-3">
+            <input type="password" name="password2" class="form-control{% if form.password2.errors %} is-invalid{% endif %}" placeholder="Confirm password" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Register</button>
+    </form>
+</div>
+
+<!-- Optional client-side validation -->
+<script>
+    document.querySelector("form").addEventListener("submit", function (e) {
+        let valid = true;
+        document.querySelectorAll("input[required]").forEach(input => {
+            if (!input.value.trim()) {
+                input.classList.add("is-invalid");
+                valid = false;
+            } else {
+                input.classList.remove("is-invalid");
+            }
+        });
+        if (!valid) {
+            e.preventDefault();
+        }
+    });
+</script>
 {% endblock %}

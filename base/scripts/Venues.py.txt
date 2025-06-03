@@ -1,0 +1,41 @@
+for venue_info in [
+        ['COMP/LAB/(LIBR)', 4, 30, 40, 1],
+        ['COMP/LAB(SC)', 2, 20, 40, 1],
+        ['DUCE/LRA/001', 2, 80, 160, 0],
+        ['DUCE/LRB/011', 2, 80, 160, 0],
+        ['DUCE/LRC/014', 2, 80, 160, 0],
+        ['DUCE/MTR', 2, 66, 120, 0],
+        ['DUCE/TPC/106', 2, 20, 40, 0],
+        ['DUCE/TPC/211', 2, 20, 40, 0],
+        ['LECT//HALL', 4, 210, 400, 0],
+        ['LECT/ROOM/119', 2, 80, 160, 0 ],
+        ['LECT/ROOM/123', 2, 80, 160, 0],
+        ['LIBR/SPECIAL/RESERV', 2, 20, 40, 1],
+        ['LIBRARY//PGDE', 2, 20, 40, 1],
+        ['N/L/TH/A', 4, 240, 500, 0],
+        ['N/L/TH/B', 4, 240, 500, 0],
+        ['N/L/TH/C', 6, 550, 1000, 0],
+        ['NEW/LIBR/FIRST/FLOOR', 4, 95, 150, 1],
+        ['NEW/LIBR/GR/FLOOR', 4, 60, 120, 1],
+        ['NEW/LIBR/SEC/FLOOR', 4, 150, 300, 1],
+        ['SEMINAR/ROOM/207', 2, 20, 40, 0],
+        ['LIBRARY/PGDE', 2, 20, 40, 1],
+        ['LECT/HALL', 4, 210, 400, 0],
+        ['L/HALL', 4, 210, 400, 0],
+        ['SEMINAR/ROOM/209', 2, 20, 40, 0],
+        ['LECTURE/ROOM/123', 2, 80, 160, 0],
+        ['LECTURE/ROOM/119', 2, 80, 160, 0],
+        ['FRENCH-LAB', 2, 15, 30, 0],
+        ['LIBRARY/PG', 4, 17, 30, 0]
+        ]:
+
+        venue = {
+            'venue_name' : venue_info[0],
+            'venue_number_invigilators' : venue_info[1],
+            'venue_capacity_exams' : venue_info[2],
+            'venue_capacity_teaching' : venue_info[3],
+            'venue_category' : venue_info[4],
+        }
+
+        if not Venues.objects.filter(venue_name=venue_info[0]).exists():
+            instance, created = Venues.objects.get_or_create(**venue)

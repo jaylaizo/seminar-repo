@@ -23,10 +23,9 @@
     <h4 class="mb-4 text-center">Login</h4>
     <form method="post" novalidate>
         {% csrf_token %}
-        
+
         <!-- Username -->
         <div class="mb-3">
-            
             <input 
                 type="text" 
                 name="username" 
@@ -38,7 +37,6 @@
 
         <!-- Password -->
         <div class="mb-3">
-            
             <input 
                 type="password" 
                 name="password" 
@@ -49,14 +47,31 @@
         </div>
 
         <button type="submit" class="btn btn-primary w-100">Login</button>
-
-        
     </form>
 
     <div class="mt-4 text-center">
-    <p>Don't have an account?</p>
-    <a href="{% url 'student_register' %}" class="btn btn-outline-secondary w-100">Sign Up</a>
+        <p>Don't have an account?</p>
+
+        <!-- Trigger Modal Button -->
+        <button type="button" class="btn btn-outline-secondary w-100" data-bs-toggle="modal" data-bs-target="#registerModal">
+            Sign Up
+        </button>
     </div>
- 
+</div>
+
+<!-- Modal for Register Options -->
+<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="registerModalLabel">Register As</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <a href="{% url 'student_register' %}" class="btn btn-success w-100 mb-2">Student</a>
+        <a href="{% url 'instructor_register' %}" class="btn btn-primary w-100">Instructor</a>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
