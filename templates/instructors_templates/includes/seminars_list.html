@@ -1,27 +1,36 @@
-{% for seminar in seminars %}
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5 class="card-title">{{ seminar.course_code }}</h5>
-            <p class="card-text">
-                <strong>Day:</strong> {{ seminar.day }}<br>
-                <strong>Time:</strong> {{ seminar.time }}<br>
-                <strong>Venue:</strong> {{ seminar.venue.venue_name}}<br>
-                <strong>venue_capacity</strong>{{ seminar.venue.venue_capacity }}<br>
-                <strong>Registered:</strong> {{ seminar.seminarregistration_set.count }}<br>
-            </p>
-            
-            <!-- View Groups Button -->
-            <a href="#" 
-                class="btn btn-sm btn-primary ajax-link" 
-                data-url="{% url 'seminar_groups' seminar.id %}">
-                View Groups
-            </a>
-
-
-
-            
-        </div>
-    </div>
-{% empty %}
+{% if seminars %}
+    <table class="table table-bordered table-hover">
+        <thead class="table-info">
+            <tr>
+                <th>Course Code</th>
+                <th>Day</th>
+                <th>Time</th>
+                <th>Venue</th>
+                <th>Capacity</th>
+                <th>Registered</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for seminar in seminars %}
+                <tr>
+                    <td>{{ seminar.course_code }}</td>
+                    <td>{{ seminar.day }}</td>
+                    <td>{{ seminar.time }}</td>
+                    <td>{{ seminar.venue.venue_name }}</td>
+                    <td>{{ seminar.venue.venue_capacity }}</td>
+                    <td>{{ seminar.seminarregistration_set.count }}</td>
+                    <td>
+                        <a href="#" 
+                           class="btn btn-sm btn-primary ajax-link" 
+                           data-url="{% url 'seminar_groups' seminar.id %}">
+                           View Groups
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
     <p>No seminars found.</p>
-{% endfor %}
+{% endif %}

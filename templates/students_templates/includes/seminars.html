@@ -1,37 +1,50 @@
-{% if seminars %}
-    <div class="row">
-        {% for seminar in seminars %}
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <strong>{{ seminar.course_code }}</strong> - {{ seminar.program }}
-                </div>
-                <div class="card-body">
-                    {% with seminar.seminarregistration_set.count as reg_count %}
-                        <p class="card-text">
-                            <strong>Day:</strong> {{ seminar.day }}<br>
-                            <strong>Time:</strong> {{ seminar.time }}<br>
-                            <strong>Venue:</strong> {{ seminar.venue.venue_name }}<br>
-                            <strong>Capacity:</strong> {{ reg_count }}/{{ seminar.venue.venue_capacity }}<br>
-                            <strong>Status:</strong>
-                            {% if reg_count >= seminar.venue.venue_capacity %}
-                                <span class="text-danger">Full</span>
-                            {% else %}
-                                <span class="text-success">Open</span>
-                            {% endif %}
-                        </p>
 
-                        {% if reg_count < seminar.venue.venue_capacity %}
-                            <a href="{% url 'register_seminar' seminar.id %}" class="btn btn-success btn-sm">Register</a>
-                        {% else %}
-                            <button class="btn btn-secondary btn-sm" disabled>Full</button>
-                        {% endif %}
-                    {% endwith %}
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+
+{% if seminars %}
+    <table class="table table-bordered table-hover">
+        <thead class="table-primary">
+            <tr>
+                <th>Course Code</th>
+                <th>Day</th>
+                <th>Time</th>
+                <th>Venue</th>
+                <th>Capacity</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for seminar in seminars %}
+                {% with seminar.seminarregistration_set.count as reg_count %}
+                    <tr>
+                        <td>{{ seminar.course_code }}</td>
+                        <td>{{ seminar.day }}</td>
+                        <td>{{ seminar.time }}</td>
+                        <td>{{ seminar.venue.venue_name }}</td>
+                        <td>{{ reg_count }}/{{ seminar.venue.venue_capacity }}</td>
+                        <td>
+                            {% if reg_count >= seminar.venue.venue_capacity %}
+                                <span class="badge bg-danger">Full</span>
+                            {% else %}
+                                <span class="badge bg-success">Open</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if reg_count < seminar.venue.venue_capacity %}
+                                <form method="post" action="{% url 'register_seminar' seminar.id %}" class="register-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm">Register</button>
+                                </form>
+                            {% else %}
+                                <button class="btn btn-secondary btn-sm" disabled>Full</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endwith %}
+            {% endfor %}
+        </tbody>
+    </table>
 {% else %}
     <p>No available seminars for your program.</p>
 {% endif %}
+

@@ -1,18 +1,8 @@
 <h3 class="mb-4 text-center">Add a New Seminar</h3>
 
-{% if form.errors %}
-    <div class="alert alert-danger">
-        <ul>
-            {% for field in form %}
-                {% for error in field.errors %}
-                    <li>{{ field.label }}: {{ error }}</li>
-                {% endfor %}
-            {% endfor %}
-        </ul>
-    </div>
-{% endif %}
+<div id="form-messages"></div>
 
-<form method="post" novalidate>
+<form id="add-seminar-form" method="post" action="{% url 'add_seminar' %}" novalidate>
     {% csrf_token %}
 
     <div class="mb-3">
@@ -36,15 +26,16 @@
     </div>
 
     <div class="mb-3">
-        <label>{{ form.eligible_programs.label }}</label>
-        <div class="form-check">
-            {% for checkbox in form.eligible_programs %}
-                <div class="form-check">
+        {{ form.eligible_programs.label_tag }}
+        {% for checkbox in form.eligible_programs %}
+            <div class="form-check">
+                <label class="form-check-label">
                     {{ checkbox.tag }} {{ checkbox.choice_label }}
-                </div>
-            {% endfor %}
-        </div>
+                </label>
+            </div>
+        {% endfor %}
     </div>
 
     <button type="submit" class="btn btn-primary w-100">Add Seminar</button>
 </form>
+

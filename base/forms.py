@@ -29,10 +29,26 @@ class StudentRegistrationForm(UserCreationForm):
         fields = ['username', 'email', 'password1', 'password2', 'registration_number', 'phone_number', 'program'] 
 
 class InstructorRegistrationForm(UserCreationForm):
-    check_number = forms.CharField(max_length=8, help_text="Unique identifier for instructors")
+    check_number = forms.CharField(
+        max_length=8,
+        help_text="Unique identifier for instructors"
+    )
+
     class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2', 'check_number']
+        fields = ['username', 'email', 'password1', 'password2']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['check_number'].required = True
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        if commit:
+            user.save()
+        return user  # Save Instructor separately in the view
+
 
 
 # --- Admin Update Forms ---

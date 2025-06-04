@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
 from base.models import Student, Seminar, SeminarGroup, SeminarRegistration
 
 
@@ -53,24 +54,39 @@ def available_seminars(request):
     return redirect('student_dashboard')
 
 
+
+
 @login_required
 def register_for_seminar(request, seminar_id):
     student = get_object_or_404(Student, user=request.user)
     seminar = get_object_or_404(Seminar, id=seminar_id)
 
-    # Ensure seminar is available to the student's program
     if student.program not in seminar.eligible_programs:
-        messages.error(request, 'This seminar is not available for your program.')
+        msg = 'This seminar is not available for your program.'
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'error', 'message': msg})
+        messages.error(request, msg)
         return redirect('student_dashboard')
 
-    # Prevent duplicate registration
-    if SeminarRegistration.objects.filter(student=student, seminar=seminar).exists():
-        messages.info(request, 'You are already registered for this seminar.')
+    already_registered = SeminarRegistration.objects.filter(
+        student=student,
+        seminar__course_code=seminar.course_code
+    ).exists()
+
+    if already_registered:
+        msg = f'You are already registered for the course: {seminar.course_code}'
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'info', 'message': msg})
+        messages.warning(request, msg)
     else:
         SeminarRegistration.objects.create(student=student, seminar=seminar)
-        messages.success(request, f'Successfully registered for seminar: {seminar.course_code}')
+        msg = f'Successfully registered for seminar: {seminar.course_code}'
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'message': msg})
+        messages.success(request, msg)
 
     return redirect('student_dashboard')
+
 
 
 @login_required

@@ -93,6 +93,12 @@
         background-color: #f8f9fa;
         min-height: 100vh;
     }
+
+    #loadingSpinner {
+        display: none;
+        text-align: center;
+        margin-top: 2rem;
+    }
 </style>
 {% endblock %}
 
@@ -127,6 +133,11 @@
 
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
+        <div id="loadingSpinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
         <h3>Welcome, {{ request.user.first_name|default:request.user.username }}</h3>
         <p class="text-muted">SEMINAR MANAGEMENT SYSTEM</p>
     </div>
@@ -145,10 +156,12 @@
     document.addEventListener("DOMContentLoaded", function () {
         const sidebarLinks = document.querySelectorAll(".sidebar-link");
         const mainContent = document.getElementById("mainContent");
-
+        const spinner = document.getElementById("loadingSpinner");
         const defaultContent = mainContent.innerHTML;
 
         function loadContent(url) {
+            spinner.style.display = "block";
+
             fetch(url, {
                 headers: {
                     "X-Requested-With": "XMLHttpRequest"
@@ -164,6 +177,9 @@
             .catch(err => {
                 mainContent.innerHTML = `<div class="alert alert-danger">Error loading content.</div>`;
                 console.error(err);
+            })
+            .finally(() => {
+                spinner.style.display = "none";
             });
         }
 
@@ -187,7 +203,7 @@
             }
         });
 
-        // Handle dynamic .ajax-link clicks (e.g. "View Groups")
+        // Delegate dynamic AJAX link clicks (e.g. "View Groups")
         document.addEventListener("click", function (e) {
             const target = e.target.closest(".ajax-link");
             if (target) {

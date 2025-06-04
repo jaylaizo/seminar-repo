@@ -15,7 +15,7 @@
         background-color: #0277BD;
         transition: width 0.3s ease;
         width: 220px;
-        min-height: calc(100vh - 56px); /* navbar height */
+        min-height: calc(100vh - 56px);
     }
 
     .sidebar-wrapper.collapsed {
@@ -98,19 +98,19 @@
         <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
         <div class="sidebar">
             <h5>Student Panel</h5>
-            <a href="#" class="sidebar-link" data-url="{% url 'view_profile' %}">
+            <a href="#profile" class="sidebar-link" data-url="{% url 'view_profile' %}">
                 <i class="bi bi-person-circle"></i>
                 <span>Profile</span>
             </a>
-            <a href="#" class="sidebar-link" data-url="{% url 'available_seminars' %}">
+            <a href="#seminars" class="sidebar-link" data-url="{% url 'available_seminars' %}">
                 <i class="bi bi-journal-bookmark-fill"></i>
                 <span>Seminars</span>
             </a>
-            <a href="#" class="sidebar-link" data-url="{% url 'my_groups' %}">
+            <a href="#groups" class="sidebar-link" data-url="{% url 'my_groups' %}">
                 <i class="bi bi-people-fill"></i>
                 <span>My Groups</span>
             </a>
-            <a href="#" class="sidebar-link" data-url="{% url 'registered_seminars' %}">
+            <a href="#registered" class="sidebar-link" data-url="{% url 'registered_seminars' %}">
                 <i class="bi bi-check-circle-fill"></i>
                 <span>Registered Seminars</span>
             </a>
@@ -140,29 +140,96 @@
         const links = document.querySelectorAll(".sidebar-link");
         const mainContent = document.getElementById("mainContent");
 
+        function loadContent(url) {
+            fetch(url, {
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Failed to load content");
+                return response.text();
+            })
+            .then(html => {
+                mainContent.innerHTML = html;
+            })
+            .catch(err => {
+                mainContent.innerHTML = `<div class="alert alert-danger">Error loading content.</div>`;
+                console.error(err);
+            });
+        }
+
+        // Load content from hash on initial page load
+        const hash = window.location.hash;
+        if (hash) {
+            const target = document.querySelector(`.sidebar-link[href="${hash}"]`);
+            if (target) {
+                loadContent(target.dataset.url);
+            }
+        }
+
+        // Sidebar link click handler
         links.forEach(link => {
             link.addEventListener("click", function (e) {
                 e.preventDefault();
                 const url = this.dataset.url;
+                const hash = this.getAttribute('href');
                 if (!url) return;
 
+                window.history.pushState(null, '', hash);
+                loadContent(url);
+            });
+        });
+
+        // Handle browser back/forward navigation
+        window.addEventListener('popstate', function () {
+            const hash = window.location.hash;
+            const target = document.querySelector(`.sidebar-link[href="${hash}"]`);
+            if (target) loadContent(target.dataset.url);
+        });
+
+        // Handle seminar register button AJAX
+        document.addEventListener("submit", function (e) {
+            if (e.target.classList.contains("register-form")) {
+                e.preventDefault();
+                const form = e.target;
+                const url = form.action;
+                const formData = new FormData(form);
+
                 fetch(url, {
+                    method: "POST",
+                    body: formData,
                     headers: {
                         "X-Requested-With": "XMLHttpRequest"
                     }
                 })
-                .then(response => {
-                    if (!response.ok) throw new Error("Failed to load content");
-                    return response.text();
-                })
-                .then(html => {
-                    mainContent.innerHTML = html;
+                .then(response => response.json())
+                .then(data => {
+                    const alertType = {
+                        success: 'alert-success',
+                        error: 'alert-danger',
+                        info: 'alert-info'
+                    }[data.status] || 'alert-secondary';
+
+                    const alertDiv = document.createElement("div");
+                    alertDiv.className = `alert ${alertType} mt-2 mb-0`;
+                    alertDiv.textContent = data.message;
+                    form.appendChild(alertDiv);
+
+                    // Reload seminar list after success
+                    if (data.status === "success") {
+                        setTimeout(() => {
+                            const seminarLink = document.querySelector('.sidebar-link[href="#seminars"]');
+                            if (seminarLink) seminarLink.click();
+                        }, 1000);
+                    }
+
+                    setTimeout(() => alertDiv.remove(), 3000);
                 })
                 .catch(err => {
-                    mainContent.innerHTML = `<div class="alert alert-danger">Error loading content.</div>`;
-                    console.error(err);
+                    console.error("Registration failed", err);
                 });
-            });
+            }
         });
     });
 </script>

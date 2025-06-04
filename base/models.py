@@ -41,9 +41,10 @@ class Venue(models.Model):
 # Seminar
 class Seminar(models.Model):
     course_code = models.CharField(max_length=20)
-    time = models.TimeField()
+    time=models.CharField(max_length=20)
     day = models.CharField(max_length=20)
     instructor = models.ForeignKey(Instructor, on_delete=models.SET_NULL, null=True)
+    
     venue = models.ForeignKey(Venue, on_delete=models.CASCADE)
     eligible_programs = models.JSONField(default=list)  
 

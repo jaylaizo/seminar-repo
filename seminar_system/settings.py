@@ -115,6 +115,7 @@ USE_I18N = True
 USE_TZ = True
 
 LOGIN_URL = 'login'  # URL to redirect to for login
+LOGOUT_REDIRECT_URL= '/login'  
 
 
 # Static files (CSS, JavaScript, Images)
