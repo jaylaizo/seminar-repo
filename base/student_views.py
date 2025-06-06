@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from base.models import Student, Seminar, SeminarGroup, SeminarRegistration
+from base.utilis import try_group_students
 
 
 @login_required
@@ -80,6 +81,10 @@ def register_for_seminar(request, seminar_id):
         messages.warning(request, msg)
     else:
         SeminarRegistration.objects.create(student=student, seminar=seminar)
+        
+         # Try to group students after registration
+        try_group_students(seminar)
+        
         msg = f'Successfully registered for seminar: {seminar.course_code}'
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({'status': 'success', 'message': msg})
@@ -100,17 +105,28 @@ def registered_seminars(request):
     return redirect('student_dashboard')
 
 
+
+
 @login_required
 def view_my_groups(request):
-    student = get_object_or_404(Student, user=request.user)
+    student = request.user.student
 
-    if not SeminarRegistration.objects.filter(student=student).exists():
-        messages.warning(request, 'You must register for a seminar to view your group.')
-        #return redirect('student_dashboard')
+    groups = SeminarGroup.objects.filter(
+        students=student
+    ).select_related('seminar').prefetch_related('students')
 
-    groups = SeminarGroup.objects.filter(students=student)
+    context = {
+        'groups': groups,
+        'all_course_codes': list(set(g.seminar.course_code for g in groups)),
+        'selected_course_code': request.GET.get('course_code', '')
+    }
+
+    # Apply filter if selected
+    selected_code = context['selected_course_code']
+    if selected_code:
+        context['groups'] = [g for g in groups if g.seminar.course_code == selected_code]
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return render(request, 'students_templates/includes/my_groups.html', {'groups': groups})
+        return render(request, 'students_templates/includes/my_groups.html', context)
 
-    return redirect('student_dashboard')
+    return render(request, 'students_templates/student_dashboard.html', context)

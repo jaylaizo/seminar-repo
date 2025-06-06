@@ -1,20 +1,59 @@
-<h3>My Seminar Group(s)</h3>
-<hr>
-{% if groups %}
-    {% for group in groups %}
-        <div class="card mb-3">
-            <div class="card-header">
-                Group {{ group.id }} - Seminar: {{ group.seminar.course_code }}
-            </div>
-            <div class="card-body">
-                <ul>
-                    {% for member in group.students.all %}
-                        <li>{{ member.user.get_full_name }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-    {% endfor %}
-{% else %}
-    <p>You are not yet assigned to any group.</p>
+<h5>My Seminar Groups</h5>
+
+{% if all_course_codes %}
+    <form id="filterForm" class="mb-3">
+        <label for="course_code">Select the course below to see your below:</label>
+        <select name="course_code" id="course_code" class="form-select" onchange="document.getElementById('filterForm').dispatchEvent(new Event('submit'));">
+            <option value="">-- All Seminars --</option>
+            {% for code in all_course_codes %}
+                <option value="{{ code }}" {% if code == selected_course_code %}selected{% endif %}>{{ code }}</option>
+            {% endfor %}
+        </select>
+    </form>
 {% endif %}
+
+<div id="groupsList">
+    {% if groups %}
+        {% for group in groups %}
+            <div class="card my-3">
+                <div class="card-header">
+                    <strong>{{ group.seminar.course_code }} - Group {{ group.group_number }}</strong>
+                </div>
+                <div class="card-body">
+                    <p><strong>Day:</strong> {{ group.seminar.day }}</p>
+                    <p><strong>Time:</strong> {{ group.seminar.time }}</p>
+                    <p><strong>Venue:</strong> {{ group.seminar.venue.venue_name }}</p>
+                    <hr>
+                    <p><strong>Members:</strong></p>
+                    <ul class="list-group">
+                        {% for student in group.students.all %}
+                            <li class="list-group-item">
+                                {{ student.user.get_full_name }} ({{ student.registration_number }})
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">No group found for selected course.</div>
+    {% endif %}
+</div>
+
+<script>
+    document.getElementById("filterForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const courseCode = document.getElementById("course_code").value;
+        const url = "{% url 'my_groups' %}?course_code=" + encodeURIComponent(courseCode);
+
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById("student-content").innerHTML = html;
+        });
+    });
+</script>

@@ -5,6 +5,7 @@ from . views import UserLoginView, UserLogoutView, StudentRegisterView, Instruct
 from .seminar_views import TeachingTimetableView
 from .instructor_views import InstructorDashboardView, SeminarGroupMembersView, export_group_members, AddSeminarView, InstructorSeminarsView
 from . import student_views
+
 from .venue_views import add_venue
 
 
@@ -14,6 +15,8 @@ urlpatterns = [
     path('logout/', UserLogoutView.as_view(), name='logout'),
     
     path('add-venue/', add_venue, name='add_venue'),
+    
+    
     
     
     path('instructor/dashboard/', InstructorDashboardView.as_view(), name='instructor_dashboard'),
