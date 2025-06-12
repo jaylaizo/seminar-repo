@@ -1,17 +1,36 @@
+<!-- Export Button -->
+<div class="d-flex justify-content-end my-3">
+    <a href="{% url 'export_group_members' seminar.id %}" class="btn btn-success">
+        Export Groups as PDF
+    </a>
+</div>
+
+<!-- Group List -->
 {% for group in groups %}
     <div class="card my-3">
         <div class="card-header">
             <strong>Group {{ group.group_number }}</strong>
         </div>
         <div class="card-body">
-            {% if group.students.all %}
-                <ul class="list-group">
-                    {% for student in group.students.all %}
-                        <li class="list-group-item">
-                            {{ student.user.get_full_name }} ({{ student.registration_number }})
-                        </li>
-                    {% endfor %}
-                </ul>
+            {% if group.students.count %}
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Registration Number</th>
+                            <th>Phone Number</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in group.students.all %}
+                            <tr>
+                                <td>{{ student.user.get_full_name|default:student.user.username }}</td>
+                                <td>{{ student.registration_number }}</td>
+                                <td>{{ student.phone_number }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             {% else %}
                 <p>No students in this group.</p>
             {% endif %}

@@ -10,6 +10,9 @@ from django.views import View
 from base.forms import AddSeminarForm
 from base.models import Seminar, SeminarGroup, Instructor
 
+from reportlab.platypus import Table, TableStyle, Paragraph
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
 import io
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -84,7 +87,82 @@ class SeminarGroupMembersView(LoginRequiredMixin, TemplateView):
         return super().render_to_response(context, **response_kwargs)
 
 
+class RegisteredStudentsView(LoginRequiredMixin, TemplateView):
+    template_name = 'instructors_templates/includes/registered_students.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        seminar_id = self.kwargs['seminar_id']
+        seminar = get_object_or_404(Seminar, id=seminar_id, instructor=self.request.user.instructor)
+
+        # Fetch all students registered for this seminar (regardless of groups)
+        registered_students = seminar.seminarregistration_set.select_related('student__user')
+
+        context['seminar'] = seminar
+        context['registered_students'] = [reg.student for reg in registered_students]
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return render(self.request, self.template_name, context)
+        return super().render_to_response(context, **response_kwargs)
+
+# Export Registered Students to PDF
+@login_required
+def export_registered_students(request, seminar_id):
+    seminar = get_object_or_404(Seminar, id=seminar_id, instructor=request.user.instructor)
+    registered_students = seminar.seminarregistration_set.select_related('student__user')
+
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    styles = getSampleStyleSheet()
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(50, height - 50, f"Registered Students for {seminar.course_code} - {seminar.day} at {seminar.time}")
+
+    data = [["Name", "Registration Number", "Phone Number"]]
+
+    for reg in registered_students:
+        student = reg.student
+        name = student.user.get_full_name() or student.user.username
+        data.append([name, student.registration_number, student.phone_number])
+
+    # Create table
+    table = Table(data, colWidths=[200, 150, 150])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+        ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+    ]))
+
+    # Calculate Y-position
+    table.wrapOn(p, width, height)
+    table_height = 20 * len(data)  # rough estimate
+    y = height - 80
+
+    if y - table_height < 40:
+        p.showPage()
+        y = height - 40
+
+    table.drawOn(p, 50, y - table_height)
+
+    p.showPage()
+    p.save()
+    buffer.seek(0)
+
+    response = HttpResponse(buffer, content_type='application/pdf')
+    filename = f'registered_students_{seminar.course_code}.pdf'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
 # Export Group Members to PDF
+
 @login_required
 def export_group_members(request, seminar_id):
     seminar = get_object_or_404(Seminar, id=seminar_id, instructor=request.user.instructor)
@@ -93,30 +171,46 @@ def export_group_members(request, seminar_id):
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
-    y = height - inch
 
+    styles = getSampleStyleSheet()
     p.setFont("Helvetica-Bold", 14)
-    p.drawString(inch, y, f"Seminar: {seminar.course_code}")
-    y -= 0.5 * inch
+    p.drawString(50, height - 50, f"Seminar Groups for {seminar.course_code} - {seminar.day} at {seminar.time}")
 
-    p.setFont("Helvetica", 12)
+    y_position = height - 80
 
     for group in groups:
-        p.drawString(inch, y, f"Group {group.group_number}:")
-        y -= 0.3 * inch
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(50, y_position, f"Group {group.group_number}")
+        y_position -= 20
 
+        data = [["Name", "Registration Number", "Phone Number"]]
         for student in group.students.all():
-            full_name = student.user.get_full_name() or student.user.username
-            p.drawString(inch + 0.3 * inch, y, f"- {full_name} ({student.registration_number})")
-            y -= 0.25 * inch
+            name = student.user.get_full_name() or student.user.username
+            data.append([name, student.registration_number, student.phone_number])
 
-            if y < inch:
-                p.showPage()
-                y = height - inch
-                p.setFont("Helvetica", 12)
+        table = Table(data, colWidths=[200, 150, 150])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+        ]))
 
-        y -= 0.2 * inch
+        table_width, table_height = table.wrap(0, 0)
+        if y_position - table_height < 50:
+            p.showPage()
+            y_position = height - 50
+            p.setFont("Helvetica-Bold", 12)
+            p.drawString(50, y_position, f"Group {group.group_number}")
+            y_position -= 20
 
+        table.drawOn(p, 50, y_position - table_height)
+        y_position -= table_height + 30
+
+    p.showPage()
     p.save()
     buffer.seek(0)
 

@@ -1,0 +1,31 @@
+<h5>All Registered Students for {{ seminar.course_code }} - {{ seminar.day }} at {{ seminar.time }}</h5>
+
+{% if registered_students %}
+    <!-- Export Button -->
+    <div class="mb-3">
+        <a href="{% url 'export_registered_students' seminar.id %}" class="btn btn-success btn-sm" target="_blank">
+            <i class="bi bi-file-earmark-pdf"></i> Export to PDF
+        </a>
+    </div>
+
+    <table class="table table-bordered">
+        <thead class="table-info">
+            <tr>
+                <th>Name</th>
+                <th>Registration Number</th>
+                <th>Phone Number</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in registered_students %}
+                <tr>
+                    <td>{{ student.user.get_full_name|default:student.user.username }}</td>
+                    <td>{{ student.registration_number }}</td>
+                    <td>{{ student.phone_number }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No students registered for this seminar.</p>
+{% endif %}

@@ -9,6 +9,7 @@
                 <th>Capacity</th>
                 <th>Registered</th>
                 <th>Action</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -21,11 +22,19 @@
                     <td>{{ seminar.venue.venue_capacity }}</td>
                     <td>{{ seminar.seminarregistration_set.count }}</td>
                     <td>
+                     <a href="#registered_{{ seminar.id }}" 
+                        class="btn btn-sm btn-primary ajax-link" 
+                        data-url="{% url 'registered_students' seminar.id %}">
+                        View Registered
+                       </a>
+                    </td>
+                    <td>
                         <a href="#" 
-                           class="btn btn-sm btn-primary ajax-link" 
-                           data-url="{% url 'seminar_groups' seminar.id %}">
-                           View Groups
+                         class="btn btn-sm btn-primary ajax-link" 
+                         data-url="{% url 'seminar_groups' seminar.id %}">
+                         View Groups
                         </a>
+
                     </td>
                 </tr>
             {% endfor %}

@@ -2,7 +2,7 @@
 
 {% if all_course_codes %}
     <form id="filterForm" class="mb-3">
-        <label for="course_code">Select the course below to see your below:</label>
+        <label for="course_code">Select the course below to see your group:</label>
         <select name="course_code" id="course_code" class="form-select" onchange="document.getElementById('filterForm').dispatchEvent(new Event('submit'));">
             <option value="">-- All Seminars --</option>
             {% for code in all_course_codes %}
@@ -25,13 +25,24 @@
                     <p><strong>Venue:</strong> {{ group.seminar.venue.venue_name }}</p>
                     <hr>
                     <p><strong>Members:</strong></p>
-                    <ul class="list-group">
-                        {% for student in group.students.all %}
-                            <li class="list-group-item">
-                                {{ student.user.get_full_name }} ({{ student.registration_number }})
-                            </li>
-                        {% endfor %}
-                    </ul>
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th> Name</th>
+                                <th>Registration Number</th>
+                                <th>Phone Number</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in group.students.all %}
+                                <tr>
+                                    <td>{{ student.user.get_username }}</td>
+                                    <td>{{ student.registration_number }}</td>
+                                    <td>{{ student.phone_number }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         {% endfor %}

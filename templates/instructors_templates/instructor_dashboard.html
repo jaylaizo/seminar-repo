@@ -111,12 +111,12 @@
         <div class="sidebar">
             <h5>Instructor Panel</h5>
 
-            <a href="#" class="sidebar-link" data-url="{% url 'add_seminar' %}">
+            <a href="#add_seminar" class="sidebar-link" data-url="{% url 'add_seminar' %}">
                 <i class="bi bi-plus-circle-fill"></i>
                 <span>Add New Seminar</span>
             </a>
 
-            <a href="#" class="sidebar-link" data-url="{% url 'seminar_list' %}">
+            <a href="#seminars" class="sidebar-link" data-url="{% url 'seminar_list' %}">
                 <i class="bi bi-journal-bookmark-fill"></i>
                 <span>Seminars</span>
             </a>
@@ -157,7 +157,6 @@
         const sidebarLinks = document.querySelectorAll(".sidebar-link");
         const mainContent = document.getElementById("mainContent");
         const spinner = document.getElementById("loadingSpinner");
-        const defaultContent = mainContent.innerHTML;
 
         function loadContent(url) {
             spinner.style.display = "block";
@@ -183,27 +182,43 @@
             });
         }
 
+        
+       // Load from hash on page load
+       const initialHash = window.location.hash;
+       if (initialHash) {
+            let target = document.querySelector(`.sidebar-link[href="${initialHash}"]`);
+
+           if (!target) {
+            // Try matching seminar_groups_#
+                const match = initialHash.match(/^#seminar_groups_(\d+)$/);
+                if (match) {
+                const seminarId = match[1];
+                const url = `/instructor/seminar-groups/${seminarId}/`;  // Match your Django URL pattern
+                loadContent(url);
+                return;
+               }
+         }
+
+            if (target) {
+              loadContent(target.dataset.url);
+            }
+    }
+
+
+        // Sidebar link click handler
         sidebarLinks.forEach(link => {
             link.addEventListener("click", function (e) {
                 e.preventDefault();
                 const url = this.dataset.url;
+                const hash = this.getAttribute('href');
                 if (!url) return;
 
-                history.pushState({ url: url }, "", url);
+                window.history.pushState(null, '', hash);
                 loadContent(url);
             });
         });
 
-        window.addEventListener("popstate", function (event) {
-            const url = event.state?.url;
-            if (url) {
-                loadContent(url);
-            } else {
-                mainContent.innerHTML = defaultContent;
-            }
-        });
-
-        // Delegate dynamic AJAX link clicks (e.g. "View Groups")
+        // AJAX link click handler (e.g., View Groups)
         document.addEventListener("click", function (e) {
             const target = e.target.closest(".ajax-link");
             if (target) {
@@ -211,10 +226,64 @@
                 const url = target.dataset.url;
                 if (!url) return;
 
-                history.pushState({ url: url }, "", url);
+                // Optional: update URL hash (e.g., #seminar_groups_2)
+                const seminarId = url.split('/').filter(Boolean).pop();
+                window.history.pushState(null, '', `#seminar_groups_${seminarId}`);
+
                 loadContent(url);
+            }
+        });
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function () {
+            const hash = window.location.hash;
+            const target = document.querySelector(`.sidebar-link[href="${hash}"]`);
+            if (target) loadContent(target.dataset.url);
+        });
+
+        // AJAX form submission
+        document.addEventListener("submit", function (e) {
+            if (e.target.classList.contains("instructor-form")) {
+                e.preventDefault();
+                const form = e.target;
+                const url = form.action;
+                const formData = new FormData(form);
+
+                fetch(url, {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const alertType = {
+                        success: 'alert-success',
+                        error: 'alert-danger',
+                        info: 'alert-info'
+                    }[data.status] || 'alert-secondary';
+
+                    const alertDiv = document.createElement("div");
+                    alertDiv.className = `alert ${alertType} mt-2 mb-0`;
+                    alertDiv.textContent = data.message;
+                    form.appendChild(alertDiv);
+
+                    if (data.status === "success") {
+                        setTimeout(() => {
+                            const seminarsLink = document.querySelector('.sidebar-link[href="#seminars"]');
+                            if (seminarsLink) seminarsLink.click();
+                        }, 1000);
+                    }
+
+                    setTimeout(() => alertDiv.remove(), 3000);
+                })
+                .catch(err => {
+                    console.error("Form submission failed", err);
+                });
             }
         });
     });
 </script>
+
 {% endblock %}

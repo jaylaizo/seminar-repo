@@ -3,7 +3,7 @@ from django.shortcuts import redirect
 from django.contrib.auth import views as auth_views 
 from . views import UserLoginView, UserLogoutView, StudentRegisterView, InstructorRegisterView, InstructorRegisterView
 from .seminar_views import TeachingTimetableView
-from .instructor_views import InstructorDashboardView, SeminarGroupMembersView, export_group_members, AddSeminarView, InstructorSeminarsView
+from .instructor_views import InstructorDashboardView, SeminarGroupMembersView, export_group_members, AddSeminarView, InstructorSeminarsView,RegisteredStudentsView, export_registered_students
 from . import student_views
 
 from .venue_views import add_venue
@@ -18,12 +18,15 @@ urlpatterns = [
     
     
     
-    
+    # instructor-related URLs
     path('instructor/dashboard/', InstructorDashboardView.as_view(), name='instructor_dashboard'),
     path('instructor/add-seminar/', AddSeminarView.as_view(), name='add_seminar'),
     path('instructor/seminars/', InstructorSeminarsView.as_view(), name='seminar_list'),
+    path('instructor/seminar/<int:seminar_id>/registered/', RegisteredStudentsView.as_view(), name='registered_students'),
     path('instructor/seminar/<int:seminar_id>/groups/', SeminarGroupMembersView.as_view(), name='seminar_groups'),
     path('instructor/seminar/<int:seminar_id>/export/', export_group_members, name='export_group_members'),
+    path('instructor/export-registered/<int:seminar_id>/', export_registered_students, name='export_registered_students'),
+
     path('register/instructor/', InstructorRegisterView.as_view(), name='instructor_register'),
     
     #student-related URLs

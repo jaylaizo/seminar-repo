@@ -7,7 +7,7 @@
     <div class="card-body">
         <h3 class="card-title text-center mb-4">Student Profile</h3>
 
-        <p><strong>Name:</strong> {{ student.user.first_name }} {{ student.user.last_name }}</p>
+        {% comment %} <p><strong>Name:</strong> {{ student.user.first_name }} {{ student.user.last_name }}</p> {% endcomment %}
         <p><strong>Username:</strong> {{ student.user.username }}</p>
         <p><strong>Email:</strong> {{ student.user.email }}</p>
         <p><strong>Phone Number:</strong> {{ student.phone_number }}</p>
