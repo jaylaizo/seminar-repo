@@ -1,0 +1,12 @@
+{% csrf_token %}
+<div class="mb-3">
+    <label for="{{ form.marks.id_for_label }}" class="form-label">
+        {{ form.marks.label }}
+    </label>
+    {{ form.marks }}
+    {% if form.marks.errors %}
+        <div class="text-danger small mt-1">
+            {{ form.marks.errors }}
+        </div>
+    {% endif %}
+</div>

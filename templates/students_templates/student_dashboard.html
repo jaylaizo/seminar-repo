@@ -1,4 +1,5 @@
 {% extends 'main/base.html' %}
+{% load static %}
 
 {% block title %}Student Dashboard{% endblock %}
 
@@ -106,10 +107,6 @@
                 <i class="bi bi-journal-bookmark-fill"></i>
                 <span>Seminars</span>
             </a>
-            <a href="#groups" class="sidebar-link" data-url="{% url 'my_groups' %}">
-                <i class="bi bi-people-fill"></i>
-                <span>My Groups</span>
-            </a>
             <a href="#registered" class="sidebar-link" data-url="{% url 'registered_seminars' %}">
                 <i class="bi bi-check-circle-fill"></i>
                 <span>Registered Seminars</span>
@@ -123,9 +120,13 @@
 
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
-        <h3>Welcome to Seminar Management System, {{ student.user.first_name }}</h3>
-        <p>Select an option from the sidebar to get started.</p>
+        <h3>{{ student.registration_number }} | {{student.user.get_username}}</h3>
+    
     </div>
+
+    <!-- Group Details -->
+    <div id="groupDetails" class="mt-4"></div>
+
 </div>
 {% endblock %}
 
@@ -136,7 +137,7 @@
         wrapper.classList.toggle('collapsed');
     }
 
-    document.addEventListener("DOMContentLoaded", function () {
+    function attachSidebarLinkListeners() {
         const links = document.querySelectorAll(".sidebar-link");
         const mainContent = document.getElementById("mainContent");
 
@@ -152,6 +153,8 @@
             })
             .then(html => {
                 mainContent.innerHTML = html;
+                
+                attachViewGroupListeners(); // important: reattach after content reload
             })
             .catch(err => {
                 mainContent.innerHTML = `<div class="alert alert-danger">Error loading content.</div>`;
@@ -159,36 +162,56 @@
             });
         }
 
-        // Load content from hash on initial page load
-        const hash = window.location.hash;
-        if (hash) {
-            const target = document.querySelector(`.sidebar-link[href="${hash}"]`);
-            if (target) {
-                loadContent(target.dataset.url);
-            }
-        }
-
-        // Sidebar link click handler
+        // Handle sidebar link click
         links.forEach(link => {
             link.addEventListener("click", function (e) {
                 e.preventDefault();
                 const url = this.dataset.url;
                 const hash = this.getAttribute('href');
                 if (!url) return;
-
                 window.history.pushState(null, '', hash);
                 loadContent(url);
             });
         });
 
-        // Handle browser back/forward navigation
+        // Load from hash on page load
+        const hash = window.location.hash;
+        if (hash) {
+            const target = document.querySelector(`.sidebar-link[href="${hash}"]`);
+            if (target) loadContent(target.dataset.url);
+        }
+
+        // Handle back/forward
         window.addEventListener('popstate', function () {
             const hash = window.location.hash;
             const target = document.querySelector(`.sidebar-link[href="${hash}"]`);
             if (target) loadContent(target.dataset.url);
         });
+    }
 
-        // Handle seminar register button AJAX
+    function attachViewGroupListeners() {
+        document.querySelectorAll('.view-group-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const url = this.getAttribute('data-url');
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('groupDetails').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading group:', error);
+                });
+            });
+        });
+    }
+
+    // Registration form handler
+    function attachSeminarRegistrationHandler() {
         document.addEventListener("submit", function (e) {
             if (e.target.classList.contains("register-form")) {
                 e.preventDefault();
@@ -216,7 +239,6 @@
                     alertDiv.textContent = data.message;
                     form.appendChild(alertDiv);
 
-                    // Reload seminar list after success
                     if (data.status === "success") {
                         setTimeout(() => {
                             const seminarLink = document.querySelector('.sidebar-link[href="#seminars"]');
@@ -231,6 +253,11 @@
                 });
             }
         });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        attachSidebarLinkListeners();
+        attachSeminarRegistrationHandler();
     });
 </script>
 {% endblock %}

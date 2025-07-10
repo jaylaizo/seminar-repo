@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from base.models import Student, Seminar, SeminarGroup, SeminarRegistration
 from base.utilis import try_group_students
+from base.forms import SeminarWorkUploadForm
 
 
 @login_required
@@ -83,7 +84,7 @@ def register_for_seminar(request, seminar_id):
         SeminarRegistration.objects.create(student=student, seminar=seminar)
         
          # Try to group students after registration
-        try_group_students(seminar)
+        try_group_students(seminar, student)
         
         msg = f'Successfully registered for seminar: {seminar.course_code}'
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -105,28 +106,40 @@ def registered_seminars(request):
     return redirect('student_dashboard')
 
 
-
-
 @login_required
 def view_my_groups(request):
-    student = request.user.student
+    student = Student.objects.get(user=request.user)
+    seminar_id = request.GET.get('seminar_id')
 
-    groups = SeminarGroup.objects.filter(
-        students=student
-    ).select_related('seminar').prefetch_related('students')
+    groups = []
+
+    if seminar_id:
+        groups = SeminarGroup.objects.filter(
+            seminar__id=seminar_id,
+            students=student
+        ).select_related('seminar', 'seminar__venue')
 
     context = {
-        'groups': groups,
-        'all_course_codes': list(set(g.seminar.course_code for g in groups)),
-        'selected_course_code': request.GET.get('course_code', '')
+        'groups': groups
     }
 
-    # Apply filter if selected
-    selected_code = context['selected_course_code']
-    if selected_code:
-        context['groups'] = [g for g in groups if g.seminar.course_code == selected_code]
-
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return render(request, 'students_templates/includes/my_groups.html', context)
 
     return render(request, 'students_templates/student_dashboard.html', context)
+
+
+@login_required
+def upload_seminar_work(request, group_id):
+    group = get_object_or_404(SeminarGroup, id=group_id, students=request.user.student)
+
+    if request.method == 'POST':
+        form = SeminarWorkUploadForm(request.POST, request.FILES, instance=group)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Seminar work uploaded successfully.")
+            return redirect('registered_seminars')  # or wherever you list the groups
+    else:
+        form = SeminarWorkUploadForm(instance=group)
+
+    return render(request, 'students_templates/includes/upload_seminar_work.html', {'form': form, 'group': group})

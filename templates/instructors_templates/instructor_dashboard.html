@@ -126,9 +126,7 @@
                 <span>Logout</span>
             </a>
         </div>
-        <footer class="text-center py-3 text-white" style="background-color: #0277BD;">
-            <small>© <span id="year">SMS</span></small>
-        </footer>
+        
     </div>
 
     <!-- Main Content -->
@@ -151,7 +149,7 @@
         wrapper.classList.toggle('collapsed');
     }
 
-    document.getElementById('year').textContent = new Date().getFullYear();
+    
 
     document.addEventListener("DOMContentLoaded", function () {
         const sidebarLinks = document.querySelectorAll(".sidebar-link");
@@ -182,63 +180,71 @@
             });
         }
 
-        
-       // Load from hash on page load
-       const initialHash = window.location.hash;
-       if (initialHash) {
-            let target = document.querySelector(`.sidebar-link[href="${initialHash}"]`);
-
-           if (!target) {
-            // Try matching seminar_groups_#
-                const match = initialHash.match(/^#seminar_groups_(\d+)$/);
-                if (match) {
-                const seminarId = match[1];
-                const url = `/instructor/seminar-groups/${seminarId}/`;  // Match your Django URL pattern
-                loadContent(url);
-                return;
-               }
-         }
-
+        // Handle initial hash load
+        const initialHash = window.location.hash;
+        if (initialHash) {
+            const target = document.querySelector(`.sidebar-link[href="${initialHash}"]`);
             if (target) {
-              loadContent(target.dataset.url);
+                loadContent(target.dataset.url);
+            } else {
+                const groupMatch = initialHash.match(/^#seminar_groups_(\d+)$/);
+                const submissionMatch = initialHash.match(/^#view_submissions_(\d+)$/);
+                const registeredMatch = initialHash.match(/^#registered_(\d+)$/);
+
+                if (groupMatch) {
+                    loadContent(`/instructor/seminar-groups/${groupMatch[1]}/`);
+                } else if (submissionMatch) {
+                    loadContent(`/instructor/seminar-submissions/${submissionMatch[1]}/`);
+                } else if (registeredMatch) {
+                    loadContent(`/instructor/registered-students/${registeredMatch[1]}/`);
+                }
             }
-    }
+        }
 
-
-        // Sidebar link click handler
+        // Sidebar navigation
         sidebarLinks.forEach(link => {
             link.addEventListener("click", function (e) {
                 e.preventDefault();
                 const url = this.dataset.url;
                 const hash = this.getAttribute('href');
                 if (!url) return;
-
                 window.history.pushState(null, '', hash);
                 loadContent(url);
             });
         });
 
-        // AJAX link click handler (e.g., View Groups)
+        // AJAX link click (e.g. buttons in seminar_list.html)
         document.addEventListener("click", function (e) {
             const target = e.target.closest(".ajax-link");
             if (target) {
                 e.preventDefault();
                 const url = target.dataset.url;
+                const hash = target.getAttribute("href");
                 if (!url) return;
-
-                // Optional: update URL hash (e.g., #seminar_groups_2)
-                const seminarId = url.split('/').filter(Boolean).pop();
-                window.history.pushState(null, '', `#seminar_groups_${seminarId}`);
-
+                window.history.pushState(null, '', hash);
                 loadContent(url);
             }
         });
 
-        // Handle browser back/forward buttons
-        window.addEventListener('popstate', function () {
+        // Back/Forward browser buttons
+        window.addEventListener("popstate", function () {
             const hash = window.location.hash;
             const target = document.querySelector(`.sidebar-link[href="${hash}"]`);
-            if (target) loadContent(target.dataset.url);
+            if (target) {
+                loadContent(target.dataset.url);
+            } else {
+                const groupMatch = hash.match(/^#seminar_groups_(\d+)$/);
+                const submissionMatch = hash.match(/^#view_submissions_(\d+)$/);
+                const registeredMatch = hash.match(/^#registered_(\d+)$/);
+
+                if (groupMatch) {
+                    loadContent(`/instructor/seminar-groups/${groupMatch[1]}/`);
+                } else if (submissionMatch) {
+                    loadContent(`/instructor/seminar-submissions/${submissionMatch[1]}/`);
+                } else if (registeredMatch) {
+                    loadContent(`/instructor/registered-students/${registeredMatch[1]}/`);
+                }
+            }
         });
 
         // AJAX form submission
@@ -285,5 +291,6 @@
         });
     });
 </script>
+
 
 {% endblock %}

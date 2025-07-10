@@ -11,7 +11,7 @@
     <table class="table table-bordered">
         <thead class="table-info">
             <tr>
-                <th>Name</th>
+                <!-- <th>Name</th> -->
                 <th>Registration Number</th>
                 <th>Phone Number</th>
             </tr>
@@ -19,7 +19,7 @@
         <tbody>
             {% for student in registered_students %}
                 <tr>
-                    <td>{{ student.user.get_full_name|default:student.user.username }}</td>
+                    <!-- <td>{{ student.user.get_full_name|default:student.user.username }}</td> -->
                     <td>{{ student.registration_number }}</td>
                     <td>{{ student.phone_number }}</td>
                 </tr>

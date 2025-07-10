@@ -1,38 +1,34 @@
-from base.models import SeminarGroup, SeminarRegistration
+from base.models import SeminarGroup
 
-def try_group_students(seminar):
+def try_group_students(seminar, student):
     """
-    Automatically create groups of 10 students for a specific Seminar instance.
-    Each seminar is uniquely defined by course_code, day, time, and venue.
+    Assign a student to a group for a specific seminar.
+    Each group holds up to 10 students. A new group is created
+    only when the last one reaches capacity.
     """
-    # Get already grouped student IDs for this seminar
-    grouped_ids = SeminarGroup.objects.filter(
+    # Check if student is already in a group for this seminar
+    existing_group = SeminarGroup.objects.filter(
+        seminar=seminar,
+        students=student
+    ).first()
+
+    if existing_group:
+        return  # Student already grouped
+
+    # Get the last created group for this seminar
+    last_group = SeminarGroup.objects.filter(
         seminar=seminar
-    ).values_list('students__id', flat=True)
+    ).order_by('-group_number').first()
 
-    # Get ungrouped students registered for this exact seminar
-    ungrouped_regs = SeminarRegistration.objects.filter(
-        seminar=seminar
-    ).exclude(student__id__in=grouped_ids).select_related('student') 
-
-    ungrouped_students = [reg.student for reg in ungrouped_regs]
-
-    if len(ungrouped_students) < 10:
-        return  # Not enough students yet
-
-    # Get the max existing group number for this seminar
-    existing_numbers = SeminarGroup.objects.filter(seminar=seminar).values_list('group_number', flat=True)
-    current_max = max(existing_numbers, default=0)
-
-    # Create new groups of 10
-    for i in range(0, len(ungrouped_students), 10):
-        group_members = ungrouped_students[i:i + 10]
-        if len(group_members) < 10:
-            break  # Only full groups allowed
-
-        current_max += 1
+    if not last_group or last_group.students.count() >= 10:
+        # No group exists or last one is full → create a new group
+        next_group_number = 1 if not last_group else last_group.group_number + 1
         group = SeminarGroup.objects.create(
             seminar=seminar,
-            group_number=current_max
+            group_number=next_group_number
         )
-        group.students.set(group_members)
+    else:
+        # Use the existing non-full group
+        group = last_group
+
+    group.students.add(student)

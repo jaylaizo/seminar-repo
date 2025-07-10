@@ -1,0 +1,107 @@
+<div class="card">
+    <div class="card-header bg-info text-white">
+        Seminar Submissions - {{ seminar.course_code }} ({{ seminar.day }} at {{ seminar.time }})
+    </div>
+    <div class="card-body">
+        {% if groups %}
+            <div class="accordion" id="submissionsAccordion">
+                {% for group in groups %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ group.id }}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ group.id }}">
+                                Group {{ group.group_number }}
+                            </button>
+                        </h2>
+                        <div id="collapse{{ group.id }}" class="accordion-collapse collapse" data-bs-parent="#submissionsAccordion">
+                            <div class="accordion-body">
+                                {% if group.seminar_file %}
+                                    <p><strong>Submitted File:</strong> 
+                                        <a href="{{ group.seminar_file.url }}" target="_blank" class="btn btn-outline-primary btn-sm">View/Download</a>
+                                    </p>
+                                    <p><strong>Marks:</strong>
+                                        {% if group.marks %}
+                                            {{ group.marks }}
+                                        {% else %}
+                                            <span class="text-muted">Not graded</span>
+                                        {% endif %}
+                                    </p>
+                                        <button type="button"
+                                                class="btn btn-success btn-sm upload-marks-btn"
+                                                data-group-id="{{ group.id }}"
+                                                data-group-number="{{ group.group_number }}"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#uploadMarksModal">
+                                            Upload Marks
+                                        </button>
+                                        {% else %}
+                                    <p class="text-danger">No file submitted by this group.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted">No groups found with submissions.</p>
+        {% endif %}
+    </div>
+</div>
+<!-- Upload Marks Modal -->
+<div class="modal fade" id="uploadMarksModal" tabindex="-1" aria-labelledby="uploadMarksModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="marksUploadForm" method="post">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="uploadMarksModalLabel">Upload Marks for Group <span id="modalGroupNumber"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="modalBodyContent">
+          <!-- AJAX form will load here -->
+          <div class="text-center">
+              <div class="spinner-border text-primary" role="status" id="loadingSpinner" style="display: none;">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Submit Marks</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const uploadButtons = document.querySelectorAll('.upload-marks-btn');
+    const modalBody = document.getElementById('modalBodyContent');
+    const groupNumberSpan = document.getElementById('modalGroupNumber');
+    const marksForm = document.getElementById('marksUploadForm');
+    const spinner = document.getElementById('loadingSpinner');
+
+    uploadButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const groupId = this.getAttribute('data-group-id');
+            const groupNumber = this.getAttribute('data-group-number');
+
+            groupNumberSpan.textContent = groupNumber;
+            spinner.style.display = 'block';
+            modalBody.innerHTML = ''; // Clear previous form
+
+            fetch(`/upload-marks/${groupId}/`)
+                .then(response => response.text())
+                .then(html => {
+                    spinner.style.display = 'none';
+                    modalBody.innerHTML = html;
+
+                    // Update form action
+                    marksForm.action = `/upload-marks/${groupId}/`;
+                })
+                .catch(error => {
+                    spinner.style.display = 'none';
+                    modalBody.innerHTML = `<p class="text-danger">Failed to load form.</p>`;
+                });
+        });
+    });
+});
+</script>

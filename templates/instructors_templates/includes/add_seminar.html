@@ -1,5 +1,14 @@
 <h3 class="mb-4 text-center">Add a New Seminar</h3>
 
+<!-- Display non-field errors -->
+{% if form.non_field_errors %}
+    <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+
 <div id="form-messages"></div>
 
 <form id="add-seminar-form" method="post" action="{% url 'add_seminar' %}" novalidate>
@@ -8,21 +17,33 @@
     <div class="mb-3">
         {{ form.course_code.label_tag }}
         {{ form.course_code }}
+        {% if form.course_code.errors %}
+            <div class="text-danger small">{{ form.course_code.errors.0 }}</div>
+        {% endif %}
     </div>
 
     <div class="mb-3">
         {{ form.day.label_tag }}
         {{ form.day }}
+        {% if form.day.errors %}
+            <div class="text-danger small">{{ form.day.errors.0 }}</div>
+        {% endif %}
     </div>
 
     <div class="mb-3">
         {{ form.time.label_tag }}
         {{ form.time }}
+        {% if form.time.errors %}
+            <div class="text-danger small">{{ form.time.errors.0 }}</div>
+        {% endif %}
     </div>
 
     <div class="mb-3">
         {{ form.venue.label_tag }}
         {{ form.venue }}
+        {% if form.venue.errors %}
+            <div class="text-danger small">{{ form.venue.errors.0 }}</div>
+        {% endif %}
     </div>
 
     <div class="mb-3">
@@ -34,8 +55,10 @@
                 </label>
             </div>
         {% endfor %}
+        {% if form.eligible_programs.errors %}
+            <div class="text-danger small">{{ form.eligible_programs.errors.0 }}</div>
+        {% endif %}
     </div>
 
     <button type="submit" class="btn btn-primary w-100">Add Seminar</button>
 </form>
-

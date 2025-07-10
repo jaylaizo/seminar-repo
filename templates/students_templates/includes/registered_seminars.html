@@ -1,13 +1,45 @@
 <h3>Registered Seminars</h3>
 <hr>
+
 {% if registered_seminars %}
-    <ul class="list-group">
-        {% for reg in registered_seminars %}
-            <li class="list-group-item">
-                {{ reg.seminar.course_code }} - {{ reg.seminar.day }} at {{ reg.seminar.time }} ({{ reg.seminar.venue.venue_name }})
-            </li>
-        {% endfor %}
-    </ul>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Course Code</th>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Venue</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reg in registered_seminars %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ reg.seminar.course_code }}</td>
+                        <td>{{ reg.seminar.day }}</td>
+                        <td>{{ reg.seminar.time }}</td>
+                        <td>{{ reg.seminar.venue.venue_name }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary view-group-btn"
+                             data-url="{% url 'my_groups' %}?seminar_id={{ reg.seminar.id }}">
+                             View Group
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Group display area -->
+    <div id="groupDetails" class="mt-4"></div>
+
 {% else %}
-    <p>You haven't registered for any seminars yet.</p>
+    <div class="alert alert-info">
+        You haven't registered for any seminars yet.
+    </div>
 {% endif %}
+

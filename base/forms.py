@@ -116,9 +116,23 @@ class AddSeminarForm(forms.ModelForm):
         }
 
     def clean_eligible_programs(self):
-        # Convert choices into list (for JSONField)
         return self.cleaned_data['eligible_programs']
 
+    def clean(self):
+        cleaned_data = super().clean()
+        venue = cleaned_data.get('venue')
+        day = cleaned_data.get('day')
+        time = cleaned_data.get('time')
+
+        if venue and day and time:
+            conflict = Seminar.objects.filter(
+                venue=venue,
+                day=day,
+                time=time
+            ).exists()
+
+            if conflict:
+                raise forms.ValidationError("This venue is already booked for the selected day and time.")
 
 # --- Seminar Registration ---
 
@@ -136,4 +150,20 @@ class SeminarGroupForm(forms.ModelForm):
         fields = ['group_number', 'seminar', 'instructor', 'students']
         widgets = {
             'students': forms.CheckboxSelectMultiple(),  # fix key typo from "student"
+        }
+        
+class SeminarWorkUploadForm(forms.ModelForm):
+    class Meta:
+        model = SeminarGroup
+        fields = ['seminar_file']
+        widgets = {
+            'seminar_file': forms.ClearableFileInput(attrs={'class': 'form-control'})
+        }
+
+class MarksUploadForm(forms.ModelForm):
+    class Meta:
+        model = SeminarGroup
+        fields = ['marks']
+        widgets = {
+            'marks': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
         }

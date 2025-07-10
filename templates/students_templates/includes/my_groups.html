@@ -1,34 +1,44 @@
-<h5>My Seminar Groups</h5>
+{% if groups %}
+    {% for group in groups %}
+        <div class="card mb-3">
+            <div class="card-header bg-success text-white">
+                {{ group.seminar.course_code }} - Group {{ group.group_number }}
+            </div>
+            <div class="card-body">
+                <p><strong>Day:</strong> {{ group.seminar.day }}</p>
+                <p><strong>Time:</strong> {{ group.seminar.time }}</p>
+                <p><strong>Venue:</strong> {{ group.seminar.venue.venue_name }}</p>
 
-{% if all_course_codes %}
-    <form id="filterForm" class="mb-3">
-        <label for="course_code">Select the course below to see your group:</label>
-        <select name="course_code" id="course_code" class="form-select" onchange="document.getElementById('filterForm').dispatchEvent(new Event('submit'));">
-            <option value="">-- All Seminars --</option>
-            {% for code in all_course_codes %}
-                <option value="{{ code }}" {% if code == selected_course_code %}selected{% endif %}>{{ code }}</option>
-            {% endfor %}
-        </select>
-    </form>
-{% endif %}
+                <p>
+                    <strong>Marks:</strong>
+                    {% if group.marks %}
+                        {{ group.marks }}
+                    {% else %}
+                        <span class="text-muted">Not graded yet</span>
+                    {% endif %}
+                </p>
 
-<div id="groupsList">
-    {% if groups %}
-        {% for group in groups %}
-            <div class="card my-3">
-                <div class="card-header">
-                    <strong>{{ group.seminar.course_code }} - Group {{ group.group_number }}</strong>
-                </div>
-                <div class="card-body">
-                    <p><strong>Day:</strong> {{ group.seminar.day }}</p>
-                    <p><strong>Time:</strong> {{ group.seminar.time }}</p>
-                    <p><strong>Venue:</strong> {{ group.seminar.venue.venue_name }}</p>
-                    <hr>
-                    <p><strong>Members:</strong></p>
+                <p>
+                    <strong>Submission Status:</strong>
+                    {% if group.seminar_file %}
+                        <a href="{{ group.seminar_file.url }}" target="_blank">View Submitted File</a>
+                    {% else %}
+                        Not submitted |
+                        <a href="{% url 'upload_seminar_work' group.id %}" class="btn btn-sm btn-primary">
+                            Upload Seminar Work
+                        </a>
+
+
+                    {% endif %}
+                </p>
+
+                <hr>
+                <h6>Group Members:</h6>
+                <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead class="table-light">
                             <tr>
-                                <th> Name</th>
+                                
                                 <th>Registration Number</th>
                                 <th>Phone Number</th>
                             </tr>
@@ -36,7 +46,6 @@
                         <tbody>
                             {% for student in group.students.all %}
                                 <tr>
-                                    <td>{{ student.user.get_username }}</td>
                                     <td>{{ student.registration_number }}</td>
                                     <td>{{ student.phone_number }}</td>
                                 </tr>
@@ -45,26 +54,10 @@
                     </table>
                 </div>
             </div>
-        {% endfor %}
-    {% else %}
-        <div class="alert alert-info">No group found for selected course.</div>
-    {% endif %}
-</div>
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="alert alert-info">No group found for this seminar.</div>
+{% endif %}
 
-<script>
-    document.getElementById("filterForm").addEventListener("submit", function(e) {
-        e.preventDefault();
-        const courseCode = document.getElementById("course_code").value;
-        const url = "{% url 'my_groups' %}?course_code=" + encodeURIComponent(courseCode);
-
-        fetch(url, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.text())
-        .then(html => {
-            document.getElementById("student-content").innerHTML = html;
-        });
-    });
-</script>
+ 

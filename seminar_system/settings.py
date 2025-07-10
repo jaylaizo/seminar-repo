@@ -118,6 +118,8 @@ LOGIN_URL = 'login'  # URL to redirect to for login
 LOGOUT_REDIRECT_URL= '/login'  
 
 
+
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
@@ -127,3 +129,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+import os
+
+MEDIA_URL = '/seminar_work/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'seminar_work')

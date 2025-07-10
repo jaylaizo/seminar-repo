@@ -9,6 +9,9 @@ from django.template.loader import render_to_string
 from django.views import View
 from base.forms import AddSeminarForm
 from base.models import Seminar, SeminarGroup, Instructor
+from .forms import MarksUploadForm
+from django.contrib import messages
+from django.shortcuts import redirect
 
 from reportlab.platypus import Table, TableStyle, Paragraph
 from reportlab.lib import colors
@@ -48,13 +51,23 @@ class AddSeminarView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('instructor_dashboard')
 
     def form_valid(self, form):
-        form.instance.instructor = self.request.user.instructor
+        instructor = self.request.user.instructor
+        day = form.cleaned_data['day']
+        time = form.cleaned_data['time']
+        venue = form.cleaned_data['venue']
+
+        if Seminar.objects.filter(day=day, time=time, venue=venue).exists():
+            form.add_error('venue', "This venue is already taken for the selected day and time. Please choose another.")
+            return self.form_invalid(form)
+
+        form.instance.instructor = instructor
         return super().form_valid(form)
 
     def render_to_response(self, context, **response_kwargs):
         if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
             return render(self.request, 'instructors_templates/includes/add_seminar.html', context)
         return super().render_to_response(context, **response_kwargs)
+
 
 # Instructor Seminars View
 class InstructorSeminarsView(View):
@@ -106,6 +119,39 @@ class RegisteredStudentsView(LoginRequiredMixin, TemplateView):
         if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
             return render(self.request, self.template_name, context)
         return super().render_to_response(context, **response_kwargs)
+
+# View Seminar_work Submissions
+@login_required
+def view_seminar_submissions(request, seminar_id):
+    seminar = get_object_or_404(Seminar, id=seminar_id, instructor=request.user.instructor)
+    groups = SeminarGroup.objects.filter(seminar=seminar).exclude(seminar_file='')
+
+    return render(request, 'instructors_templates/includes/view_submissions.html', {'seminar': seminar, 'groups': groups})
+
+# Upload Group Marks
+@login_required
+@login_required
+def upload_group_marks(request, group_id):
+    group = get_object_or_404(SeminarGroup, id=group_id, seminar__instructor=request.user.instructor)
+
+    if request.method == 'POST':
+        form = MarksUploadForm(request.POST, instance=group)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Marks uploaded for Group {group.group_number}.")
+            return redirect('view_submissions', seminar_id=group.seminar.id)
+        else:
+            # Return the form with errors if it's submitted via AJAX
+            return render(request, 'instructors_templates/includes/upload_marks.html', {
+                'form': form,
+                'group': group
+            })
+    else:
+        form = MarksUploadForm(instance=group)
+        return render(request, 'instructors_templates/includes/upload_marks.html', {
+            'form': form,
+            'group': group
+        })
 
 # Export Registered Students to PDF
 @login_required
