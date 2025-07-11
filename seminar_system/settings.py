@@ -134,3 +134,5 @@ import os
 
 MEDIA_URL = '/seminar_work/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'seminar_work')
+
+

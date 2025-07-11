@@ -3,6 +3,8 @@
 {% block title %}Instructor Dashboard{% endblock %}
 
 {% block extra_css %}
+{% load static %}
+
 <style>
     body {
         margin: 0;
@@ -90,8 +92,12 @@
     .main-content {
         flex-grow: 1;
         padding: 2rem;
-        background-color: #f8f9fa;
         min-height: 100vh;
+        background-image: url("{% static 'pictures/2025-06-12_021732.png' %}");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-color: rgba(255, 255, 255, 0.9);
     }
 
     #loadingSpinner {
@@ -138,7 +144,6 @@
         </div>
         <h3>Welcome, {{ request.user.first_name|default:request.user.username }}</h3>
         <p class="text-muted">SEMINAR MANAGEMENT SYSTEM</p>
-    </div>
 </div>
 {% endblock %}
 
