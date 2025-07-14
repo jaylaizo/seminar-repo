@@ -82,12 +82,57 @@
         display: none;
     }
 
+    .main-wrapper {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        width: 100%;
+    }
+
     .main-content {
         flex-grow: 1;
         padding: 2rem;
         background-color: #f8f9fa;
-        min-height: calc(100vh - 56px);
+        /* min-height: calc(100vh - 56px); */
     }
+
+    .landing-image {
+        height: 300px;
+        overflow: hidden;
+        position: relative;
+        text-align: center;
+    }
+
+    .landing-image img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+
+    .landing-text {
+        text-align: center;
+        padding: 2rem;
+        background-color: #f9f9f9;
+    }
+
+    .landing-text h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .landing-text p {
+        font-size: 1.1rem;
+        color: #555;
+    }
+
+    .landing-footer {
+        text-align: center;
+        padding: 1rem;
+        background-color: #333;
+        color: #fff;
+        font-size: 0.9rem;
+    }
+
 </style>
 {% endblock %}
 
@@ -118,14 +163,29 @@
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content" id="mainContent">
-        <h3>{{ student.registration_number }} | {{student.user.get_username}}</h3>
-    
+    <div class="main-wrapper">
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- <h3>{{ student.registration_number }} | {{student.user.get_username}}</h3> -->
+            <div class="landing-image">
+                <img src="{% static 'pictures/student_dashboard.png' %}" alt="Landing" />
+            </div>
+            <div class="landing-text">
+                <h1>Welcome, {{ student.user.get_username }}</h1>
+                <p>Your registration number: {{ student.registration_number }}</p>
+                <p>Explore your dashboard, manage your profile, and stay updated with your progress.</p>
+            </div>
+        
+        </div>
+
+        <!-- Footer -->
+        <footer class="landing-footer">
+            <p>&copy; 2025 Your School Name. All rights reserved.</p>
+        </footer>
     </div>
 
     <!-- Group Details -->
-    <div id="groupDetails" class="mt-4"></div>
+    <!-- <div id="groupDetails" class="mt-4"></div> -->
 
 </div>
 {% endblock %}
