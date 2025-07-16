@@ -22,6 +22,9 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
 
 
+# OopCompanion:suppressRename
+
+
 # Instructor Dashboard
 class InstructorDashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'instructors_templates/instructor_dashboard.html'
@@ -77,7 +80,7 @@ class InstructorSeminarsView(View):
             return render(request, 'instructors_templates/includes/seminars_list.html', {
                 'seminars': seminars
             })
-        
+
         return render(request, 'instructors_templates/instructor_dashboard.html')
 
 
@@ -120,38 +123,45 @@ class RegisteredStudentsView(LoginRequiredMixin, TemplateView):
             return render(self.request, self.template_name, context)
         return super().render_to_response(context, **response_kwargs)
 
+
 # View Seminar_work Submissions
 @login_required
 def view_seminar_submissions(request, seminar_id):
     seminar = get_object_or_404(Seminar, id=seminar_id, instructor=request.user.instructor)
     groups = SeminarGroup.objects.filter(seminar=seminar).exclude(seminar_file='')
 
-    return render(request, 'instructors_templates/includes/view_submissions.html', {'seminar': seminar, 'groups': groups})
+    # Handle the marks upload form submission
+    if request.method == 'POST':
+        form = MarksUploadForm(request.POST)
+        if form.is_valid():
+            group_id = request.POST.get('group_id')
+            group = get_object_or_404(SeminarGroup, id=group_id)
+            group.marks = form.cleaned_data['marks']
+            group.save()
+            messages.success(request, f"Marks updated for Group {group.group_number}")
+            return redirect('view_submissions', seminar_id=seminar_id)
 
-# Upload Group Marks
-@login_required
+    return render(request, 'instructors_templates/includes/view_submissions.html',
+                  {'seminar': seminar, 'groups': groups})
+
+
 @login_required
 def upload_group_marks(request, group_id):
     group = get_object_or_404(SeminarGroup, id=group_id, seminar__instructor=request.user.instructor)
 
     if request.method == 'POST':
-        form = MarksUploadForm(request.POST, instance=group)
+        form = MarksUploadForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, f"Marks uploaded for Group {group.group_number}.")
+            group.marks = form.cleaned_data['marks']
+            group.save()
+            messages.success(request, f"Marks updated for Group {group.group_number}")
             return redirect('view_submissions', seminar_id=group.seminar.id)
-        else:
-            # Return the form with errors if it's submitted via AJAX
-            return render(request, 'instructors_templates/includes/upload_marks.html', {
-                'form': form,
-                'group': group
-            })
     else:
-        form = MarksUploadForm(instance=group)
-        return render(request, 'instructors_templates/includes/upload_marks.html', {
-            'form': form,
-            'group': group
-        })
+        form = MarksUploadForm(initial={'marks': group.marks})
+
+    return render(request, 'instructors_templates/includes/upload_marks_modal.html',
+                  {'form': form, 'group': group})
+
 
 # Export Registered Students to PDF
 @login_required

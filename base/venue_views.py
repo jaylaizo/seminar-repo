@@ -5,6 +5,7 @@ from django.contrib import messages
 from base.forms import VenueForm
 from django.contrib.auth.decorators import login_required
 
+
 @login_required
 def add_venue(request):
     if request.method == 'POST':
@@ -15,6 +16,5 @@ def add_venue(request):
             return redirect('add_venue')
     else:
         form = VenueForm()
-    
-    return render(request, 'venue_templates/add_venue.html', {'form': form})
 
+    return render(request, 'venue_templates/add_venue.html', {'form': form})

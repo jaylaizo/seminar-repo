@@ -12,6 +12,9 @@ from .forms import StudentRegistrationForm, InstructorRegistrationForm
 from base.models import Student, Instructor
 
 
+# OopCompanion:suppressRename
+
+
 # Login view
 class UserLoginView(FormView):
     template_name = 'main/login.html'

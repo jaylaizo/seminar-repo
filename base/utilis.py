@@ -1,5 +1,6 @@
 from base.models import SeminarGroup
 
+
 def try_group_students(seminar, student):
     """
     Assign a student to a group for a specific seminar.

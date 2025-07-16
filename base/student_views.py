@@ -56,8 +56,6 @@ def available_seminars(request):
     return redirect('student_dashboard')
 
 
-
-
 @login_required
 def register_for_seminar(request, seminar_id):
     student = get_object_or_404(Student, user=request.user)
@@ -82,10 +80,10 @@ def register_for_seminar(request, seminar_id):
         messages.warning(request, msg)
     else:
         SeminarRegistration.objects.create(student=student, seminar=seminar)
-        
-         # Try to group students after registration
+
+        # Try to group students after registration
         try_group_students(seminar, student)
-        
+
         msg = f'Successfully registered for seminar: {seminar.course_code}'
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({'status': 'success', 'message': msg})
@@ -94,14 +92,14 @@ def register_for_seminar(request, seminar_id):
     return redirect('student_dashboard')
 
 
-
 @login_required
 def registered_seminars(request):
     student = get_object_or_404(Student, user=request.user)
     registered = SeminarRegistration.objects.filter(student=student)
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return render(request, 'students_templates/includes/registered_seminars.html', {'registered_seminars': registered})
+        return render(request, 'students_templates/includes/registered_seminars.html',
+                      {'registered_seminars': registered})
 
     return redirect('student_dashboard')
 

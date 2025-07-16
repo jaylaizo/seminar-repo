@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from .models import Student, Instructor, Venue, Seminar, SeminarRegistration, SeminarGroup, PROGRAM_CHOICES
 
+# OopCompanion:suppressRename
+
 # Constants
 DAYS_OF_WEEK = [
     ('Monday', 'Monday'),
@@ -12,7 +14,7 @@ DAYS_OF_WEEK = [
     ('Friday', 'Friday'),
 ]
 TIME_SLOTS = [
-    (f"{hour:02d}:00-{hour+1:02d}:00", f"{hour:02d}:00–{hour+1:02d}:00")
+    (f"{hour:02d}:00-{hour + 1:02d}:00", f"{hour:02d}:00–{hour + 1:02d}:00")
     for hour in range(7, 20)
 ]
 
@@ -22,11 +24,12 @@ TIME_SLOTS = [
 class StudentRegistrationForm(UserCreationForm):
     registration_number = forms.CharField(max_length=13, help_text="Unique identifier for students")
     phone_number = forms.CharField(max_length=15)
-    program = forms.ChoiceField(choices=PROGRAM_CHOICES)  
+    program = forms.ChoiceField(choices=PROGRAM_CHOICES)
 
-    class Meta: 
+    class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2', 'registration_number', 'phone_number', 'program'] 
+        fields = ['username', 'email', 'password1', 'password2', 'registration_number', 'phone_number', 'program']
+
 
 class InstructorRegistrationForm(UserCreationForm):
     check_number = forms.CharField(
@@ -50,27 +53,29 @@ class InstructorRegistrationForm(UserCreationForm):
         return user  # Save Instructor separately in the view
 
 
-
 # --- Admin Update Forms ---
 
 class UserForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
+
     class Meta:
         model = User
         fields = ['username', 'email', 'password']
+
 
 class StudentForm(forms.ModelForm):
     class Meta:
         model = Student
         fields = ['registration_number', 'phone_number', 'program']
 
+
 class InstructorForm(forms.ModelForm):
     class Meta:
         model = Instructor
-        fields = ['check_number']  
+        fields = ['check_number']
 
+    # --- Venue Form ---
 
-# --- Venue Form ---
 
 class VenueForm(forms.ModelForm):
     class Meta:
@@ -80,8 +85,6 @@ class VenueForm(forms.ModelForm):
             'venue_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter venue name'}),
             'venue_capacity': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter capacity'}),
         }
-
-
 
 
 # --- Instructor Seminar Creation Form ---
@@ -134,6 +137,7 @@ class AddSeminarForm(forms.ModelForm):
             if conflict:
                 raise forms.ValidationError("This venue is already booked for the selected day and time.")
 
+
 # --- Seminar Registration ---
 
 class SeminarRegistrationForm(forms.ModelForm):
@@ -151,7 +155,8 @@ class SeminarGroupForm(forms.ModelForm):
         widgets = {
             'students': forms.CheckboxSelectMultiple(),  # fix key typo from "student"
         }
-        
+
+
 class SeminarWorkUploadForm(forms.ModelForm):
     class Meta:
         model = SeminarGroup
@@ -159,6 +164,7 @@ class SeminarWorkUploadForm(forms.ModelForm):
         widgets = {
             'seminar_file': forms.ClearableFileInput(attrs={'class': 'form-control'})
         }
+
 
 class MarksUploadForm(forms.ModelForm):
     class Meta:
