@@ -9,9 +9,9 @@
                     <th style="width: 15%;">Venue</th>
                     <th style="width: 10%;">Capacity</th>
                     <th style="width: 10%;">Number of Registered</th>
-                    <th style="width: 11%;">List of Registered</th>
-                    <th style="width: 11%;">View Groups</th>
-                    <th style="width: 13%;">View Submissions</th>
+                    <th style="width: 12%;">Registered</th>
+                    <th style="width: 12%;">Groups</th>
+                    <th style="width: 12%;">Submissions</th>
                 </tr>
             </thead>
             <tbody>
@@ -29,7 +29,7 @@
                             <a href="#registered_{{ seminar.id }}"
                                class="btn btn-sm btn-outline-primary ajax-link w-100"
                                data-url="{% url 'registered_students' seminar.id %}">
-                                View Registered
+                                Registered
                             </a>
                         </td>
 
@@ -38,7 +38,7 @@
                             <a href="#seminar_groups_{{ seminar.id }}"
                                class="btn btn-sm btn-outline-primary ajax-link w-100"
                                data-url="{% url 'seminar_groups' seminar.id %}">
-                                View Groups
+                                Groups
                             </a>
                         </td>
 
@@ -47,7 +47,7 @@
                             <a href="#view_submissions_{{ seminar.id }}"
                                class="btn btn-sm btn-outline-primary ajax-link w-100"
                                data-url="{% url 'view_submissions' seminar.id %}">
-                                View Submissions
+                                Submissions
                             </a>
                         </td>
                     </tr>

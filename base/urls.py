@@ -38,6 +38,7 @@ urlpatterns = [
     path('student/seminars/', student_views.available_seminars, name='available_seminars'),
     path('student/seminar/register/<int:seminar_id>/', student_views.register_for_seminar, name='register_seminar'),
     path('student/registered-seminars/', student_views.registered_seminars, name='registered_seminars'),
+    path('student/unregister/<int:seminar_id>/', student_views.unregister_from_seminar, name='unregister_from_seminar'),
     path('student/groups/', student_views.view_my_groups, name='my_groups'),
     path('student/group/<int:group_id>/upload/', student_views.upload_seminar_work, name='upload_seminar_work'),
 

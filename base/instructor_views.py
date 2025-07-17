@@ -63,11 +63,23 @@ class AddSeminarView(LoginRequiredMixin, CreateView):
         form.instance.instructor = instructor
         return super().form_valid(form)
 
+   
+
+    def form_invalid(self, form):
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            html = render_to_string(
+                "instructors_templates/includes/add_seminar.html",  # partial form only
+                {"form": form},
+                request=self.request
+            )
+            return JsonResponse({"status": "error", "html": html})
+        return super().form_invalid(form)
+
+
     def render_to_response(self, context, **response_kwargs):
         if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
-            return render(self.request, 'instructors_templates/includes/add_seminar.html', context)
+            return render(self.request, self.template_name, context)
         return super().render_to_response(context, **response_kwargs)
-
 
 # Instructor Seminars View
 class InstructorSeminarsView(View):
@@ -126,10 +138,16 @@ def view_seminar_submissions(request, seminar_id):
     seminar = get_object_or_404(Seminar, id=seminar_id, instructor=request.user.instructor)
     groups = SeminarGroup.objects.filter(seminar=seminar).exclude(seminar_file='')
 
-    return render(request, 'instructors_templates/includes/view_submissions.html', {'seminar': seminar, 'groups': groups})
+    form = MarksUploadForm()  # <-- ADD THIS
+
+    return render(request, 'instructors_templates/includes/view_submissions.html', {
+        'seminar': seminar,
+        'groups': groups,
+        'form': form,  # <-- PASS IT TO THE TEMPLATE
+    })
 
 # Upload Group Marks
-@login_required
+
 @login_required
 def upload_group_marks(request, group_id):
     group = get_object_or_404(SeminarGroup, id=group_id, seminar__instructor=request.user.instructor)
@@ -139,7 +157,8 @@ def upload_group_marks(request, group_id):
         if form.is_valid():
             form.save()
             messages.success(request, f"Marks uploaded for Group {group.group_number}.")
-            return redirect('view_submissions', seminar_id=group.seminar.id)
+            return redirect('view_seminar_submissions', seminar_id=group.seminar.id)
+
         else:
             # Return the form with errors if it's submitted via AJAX
             return render(request, 'instructors_templates/includes/upload_marks.html', {

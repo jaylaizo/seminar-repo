@@ -46,62 +46,57 @@
         {% endif %}
     </div>
 </div>
+
 <!-- Upload Marks Modal -->
 <div class="modal fade" id="uploadMarksModal" tabindex="-1" aria-labelledby="uploadMarksModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <form id="marksUploadForm" method="post">
-        {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title" id="uploadMarksModalLabel">Upload Marks for Group <span id="modalGroupNumber"></span></h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body" id="modalBodyContent">
-          <!-- AJAX form will load here -->
-          <div class="text-center">
-              <div class="spinner-border text-primary" role="status" id="loadingSpinner" style="display: none;">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Submit Marks</button>
-        </div>
-      </form>
+<form id="marksUploadForm" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="group_id" id="groupIdInput">
+
+    <div class="mb-3">
+        <label for="{{ form.marks.id_for_label }}" class="form-label">{{ form.marks.label }}</label>
+        {{ form.marks }}
+        {% if form.marks.errors %}
+            <div class="text-danger small mt-1">{{ form.marks.errors }}</div>
+        {% endif %}
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Submit Marks</button>
+    </div>
+</form>
+
+
     </div>
   </div>
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const uploadButtons = document.querySelectorAll('.upload-marks-btn');
-    const modalBody = document.getElementById('modalBodyContent');
+    const modal = new bootstrap.Modal(document.getElementById('uploadMarksModal'));
     const groupNumberSpan = document.getElementById('modalGroupNumber');
+    const groupIdInput = document.getElementById('groupIdInput');
     const marksForm = document.getElementById('marksUploadForm');
-    const spinner = document.getElementById('loadingSpinner');
 
     uploadButtons.forEach(button => {
         button.addEventListener('click', function () {
             const groupId = this.getAttribute('data-group-id');
             const groupNumber = this.getAttribute('data-group-number');
 
+            // Set modal content
             groupNumberSpan.textContent = groupNumber;
-            spinner.style.display = 'block';
-            modalBody.innerHTML = ''; // Clear previous form
+            groupIdInput.value = groupId;
 
-            fetch(`/upload-marks/${groupId}/`)
-                .then(response => response.text())
-                .then(html => {
-                    spinner.style.display = 'none';
-                    modalBody.innerHTML = html;
+            // Set dynamic action URL
+            marksForm.action = `/instructor/group/${groupId}/upload-marks/`;
 
-                    // Update form action
-                    marksForm.action = `/upload-marks/${groupId}/`;
-                })
-                .catch(error => {
-                    spinner.style.display = 'none';
-                    modalBody.innerHTML = `<p class="text-danger">Failed to load form.</p>`;
-                });
+            // Optionally reset form
+            marksForm.reset();
         });
     });
 });
+
 </script>
+

@@ -1,10 +1,9 @@
 {% extends "main/base.html" %}
+{% load static %}
 
 {% block title %}Instructor Dashboard{% endblock %}
 
 {% block extra_css %}
-{% load static %}
-
 <style>
     body {
         margin: 0;
@@ -13,7 +12,7 @@
     .layout-wrapper {
         display: flex;
         margin-top: 0;
-        min-height: calc(100vh - 56px); /* navbar height */
+        min-height: calc(100vh - 56px);
     }
 
     .sidebar-wrapper {
@@ -89,15 +88,54 @@
         display: none;
     }
 
+    .main-wrapper {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        width: 100%;
+    }
+
     .main-content {
         flex-grow: 1;
         padding: 2rem;
-        min-height: 100vh;
-        background-image: url("{% static 'pictures/2025-06-12_021732.png' %}");
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-position: center center;
-        background-color: rgba(255, 255, 255, 0.9);
+        background-color: #f8f9fa;
+    }
+
+    .landing-image {
+        height: 300px;
+        overflow: hidden;
+        position: relative;
+        text-align: center;
+    }
+
+    .landing-image img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+
+    .landing-text {
+        text-align: center;
+        padding: 2rem;
+        background-color: #f9f9f9;
+    }
+
+    .landing-text h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .landing-text p {
+        font-size: 1.1rem;
+        color: #555;
+    }
+
+    .landing-footer {
+        text-align: center;
+        padding: 1rem;
+        background-color: #333;
+        color: #fff;
+        font-size: 0.9rem;
     }
 
     #loadingSpinner {
@@ -132,18 +170,34 @@
                 <span>Logout</span>
             </a>
         </div>
-        
     </div>
 
     <!-- Main Content -->
-    <div class="main-content" id="mainContent">
-        <div id="loadingSpinner">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+    <div class="main-wrapper">
+        <div class="main-content" id="mainContent">
+            <div id="loadingSpinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+
+            <!-- Landing Image -->
+            <div class="landing-image">
+                <img src="{% static 'pictures/instructor_dashboard.png' %}" alt="Instructor Landing">
+            </div>
+
+            <!-- Welcome Message -->
+            <div class="landing-text">
+                <h1>{{ request.user.first_name|default:request.user.username }}</h1>
+                <p>Manage your seminars, view groups and submissions, and guide your students effectively.</p>
             </div>
         </div>
-        <h3>Welcome, {{ request.user.first_name|default:request.user.username }}</h3>
-        <p class="text-muted">SEMINAR MANAGEMENT SYSTEM</p>
+
+        <!-- Footer -->
+        <footer class="landing-footer">
+            <p>&copy; 2025 SMS. All rights reserved.</p>
+        </footer>
+    </div>
 </div>
 {% endblock %}
 
@@ -154,8 +208,6 @@
         wrapper.classList.toggle('collapsed');
     }
 
-    
-
     document.addEventListener("DOMContentLoaded", function () {
         const sidebarLinks = document.querySelectorAll(".sidebar-link");
         const mainContent = document.getElementById("mainContent");
@@ -163,7 +215,6 @@
 
         function loadContent(url) {
             spinner.style.display = "block";
-
             fetch(url, {
                 headers: {
                     "X-Requested-With": "XMLHttpRequest"
@@ -185,7 +236,7 @@
             });
         }
 
-        // Handle initial hash load
+        // Initial hash load
         const initialHash = window.location.hash;
         if (initialHash) {
             const target = document.querySelector(`.sidebar-link[href="${initialHash}"]`);
@@ -206,7 +257,7 @@
             }
         }
 
-        // Sidebar navigation
+        // Sidebar link click handler
         sidebarLinks.forEach(link => {
             link.addEventListener("click", function (e) {
                 e.preventDefault();
@@ -218,7 +269,7 @@
             });
         });
 
-        // AJAX link click (e.g. buttons in seminar_list.html)
+        // Handle dynamic AJAX links (like seminar buttons)
         document.addEventListener("click", function (e) {
             const target = e.target.closest(".ajax-link");
             if (target) {
@@ -231,24 +282,12 @@
             }
         });
 
-        // Back/Forward browser buttons
+        // Back/forward navigation support
         window.addEventListener("popstate", function () {
             const hash = window.location.hash;
             const target = document.querySelector(`.sidebar-link[href="${hash}"]`);
             if (target) {
                 loadContent(target.dataset.url);
-            } else {
-                const groupMatch = hash.match(/^#seminar_groups_(\d+)$/);
-                const submissionMatch = hash.match(/^#view_submissions_(\d+)$/);
-                const registeredMatch = hash.match(/^#registered_(\d+)$/);
-
-                if (groupMatch) {
-                    loadContent(`/instructor/seminar-groups/${groupMatch[1]}/`);
-                } else if (submissionMatch) {
-                    loadContent(`/instructor/seminar-submissions/${submissionMatch[1]}/`);
-                } else if (registeredMatch) {
-                    loadContent(`/instructor/registered-students/${registeredMatch[1]}/`);
-                }
             }
         });
 
@@ -269,25 +308,26 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    const alertType = {
-                        success: 'alert-success',
-                        error: 'alert-danger',
-                        info: 'alert-info'
-                    }[data.status] || 'alert-secondary';
-
+                if (data.status === "success") {
                     const alertDiv = document.createElement("div");
-                    alertDiv.className = `alert ${alertType} mt-2 mb-0`;
+                    alertDiv.className = `alert alert-success mt-2 mb-0`;
                     alertDiv.textContent = data.message;
                     form.appendChild(alertDiv);
 
-                    if (data.status === "success") {
-                        setTimeout(() => {
-                            const seminarsLink = document.querySelector('.sidebar-link[href="#seminars"]');
-                            if (seminarsLink) seminarsLink.click();
-                        }, 1000);
+                    setTimeout(() => {
+                        const seminarsLink = document.querySelector('.sidebar-link[href="#seminars"]');
+                        if (seminarsLink) seminarsLink.click();
+                    }, 1000);
+
+                    // Remove the alert after 3 seconds
+
+                        setTimeout(() => alertDiv.remove(), 3000);
+                    } else if (data.status === "error" && data.html) {
+                        // Replace the main content with the error form
+                        document.getElementById("mainContent").innerHTML = data.html;
                     }
 
-                    setTimeout(() => alertDiv.remove(), 3000);
+
                 })
                 .catch(err => {
                     console.error("Form submission failed", err);
@@ -296,6 +336,4 @@
         });
     });
 </script>
-
-
 {% endblock %}

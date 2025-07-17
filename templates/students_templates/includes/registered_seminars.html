@@ -12,6 +12,7 @@
                     <th>Time</th>
                     <th>Venue</th>
                     <th>Action</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -27,6 +28,12 @@
                              data-url="{% url 'my_groups' %}?seminar_id={{ reg.seminar.id }}">
                              View Group
                             </button>
+                        </td>
+                        <td>
+                        <form method="post" action="{% url 'unregister_from_seminar' reg.seminar.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Unregister</button>
+                        </form>
                         </td>
                     </tr>
                 {% endfor %}

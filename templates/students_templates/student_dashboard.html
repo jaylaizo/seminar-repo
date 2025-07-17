@@ -171,8 +171,7 @@
                 <img src="{% static 'pictures/student_dashboard.png' %}" alt="Landing" />
             </div>
             <div class="landing-text">
-                <h1>Welcome, {{ student.user.get_username }}</h1>
-                <p>Your registration number: {{ student.registration_number }}</p>
+                <h1>{{ student.user.get_username }} | {{ student.registration_number }}</h1>
                 <p>Explore your dashboard, manage your profile, and stay updated with your progress.</p>
             </div>
         
@@ -180,7 +179,7 @@
 
         <!-- Footer -->
         <footer class="landing-footer">
-            <p>&copy; 2025 Your School Name. All rights reserved.</p>
+            <p>&copy; 2025 SMS. All rights reserved.</p>
         </footer>
     </div>
 

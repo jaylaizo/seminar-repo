@@ -93,6 +93,27 @@ def register_for_seminar(request, seminar_id):
 
     return redirect('student_dashboard')
 
+#unregister from seminar
+@login_required
+def unregister_from_seminar(request, seminar_id):
+    student = get_object_or_404(Student, user=request.user)
+    seminar = get_object_or_404(Seminar, id=seminar_id)
+
+    try:
+        # Remove seminar registration
+        registration = SeminarRegistration.objects.get(student=student, seminar=seminar)
+        registration.delete()
+
+        # Remove student from any groups in that seminar
+        for group in SeminarGroup.objects.filter(seminar=seminar, students=student):
+            group.students.remove(student)
+
+        messages.success(request, f"You have successfully unregistered from {seminar.course_code}")
+    except SeminarRegistration.DoesNotExist:
+        messages.warning(request, "You are not registered for this seminar.")
+
+    return redirect('registered_seminars')
+
 
 
 @login_required
