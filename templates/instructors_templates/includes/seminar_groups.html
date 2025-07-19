@@ -16,18 +16,35 @@
                 <table class="table table-bordered">
                     <thead class="table-light">
                         <tr>
-                            <!-- <th>Student Name</th> -->
+                            <th>Full Name</th>
                             <th>Registration Number</th>
                             <th>Phone Number</th>
+                            <th>Role</th>
                         </tr>
                     </thead>
                     <tbody>
+                        <!-- First: Group Leader -->
                         {% for student in group.students.all %}
-                            <tr>
-                                <!-- <td>{{ student.user.get_full_name|default:student.user.username }}</td> -->
-                                <td>{{ student.registration_number }}</td>
-                                <td>{{ student.phone_number }}</td>
-                            </tr>
+                            {% if student == group.group_leader %}
+                                <tr class="table-info">
+                                    <td>{{ student.user.get_full_name|default:student.user.username }}</td>
+                                    <td>{{ student.registration_number }}</td>
+                                    <td>{{ student.phone_number }}</td>
+                                    <td><span class="badge bg-primary">Group Leader</span></td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+
+                        <!-- Then: Other Members -->
+                        {% for student in group.students.all %}
+                            {% if student != group.group_leader %}
+                                <tr>
+                                    <td>{{ student.user.get_full_name|default:student.user.username }}</td>
+                                    <td>{{ student.registration_number }}</td>
+                                    <td>{{ student.phone_number }}</td>
+                                    <td>Member</td>
+                                </tr>
+                            {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>

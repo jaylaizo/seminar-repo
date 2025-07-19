@@ -3,8 +3,8 @@ from base.models import SeminarGroup
 def try_group_students(seminar, student):
     """
     Assign a student to a group for a specific seminar.
-    Each group holds up to 10 students. A new group is created
-    only when the last one reaches capacity.
+    Each group holds up to 10 students. Automatically assigns
+    the first student in a group as the group leader.
     """
     # Check if student is already in a group for this seminar
     existing_group = SeminarGroup.objects.filter(
@@ -32,3 +32,8 @@ def try_group_students(seminar, student):
         group = last_group
 
     group.students.add(student)
+
+    # If this is the first student in the group, assign as leader
+    if group.students.count() == 1:
+        group.group_leader = student
+        group.save()

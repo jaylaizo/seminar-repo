@@ -68,7 +68,8 @@ class SeminarGroup(models.Model):
     seminar = models.ForeignKey(Seminar, on_delete=models.CASCADE)
     instructor = models.ForeignKey(Instructor, on_delete=models.SET_NULL, null=True)
     students = models.ManyToManyField(Student)
-    
+    group_leader = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, blank=True, related_name='leading_groups')
+
     seminar_file = models.FileField(upload_to='submissions/', blank=True, null=True)
     submitted_by = models.ForeignKey(Student, on_delete=models.SET_NULL, null=True, blank=True, related_name='submitted_groups')
     marks = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)

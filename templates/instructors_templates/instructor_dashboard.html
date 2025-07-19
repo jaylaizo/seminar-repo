@@ -293,45 +293,39 @@
 
         // AJAX form submission
         document.addEventListener("submit", function (e) {
-            if (e.target.classList.contains("instructor-form")) {
-                e.preventDefault();
-                const form = e.target;
-                const url = form.action;
-                const formData = new FormData(form);
+    if (e.target.classList.contains("instructor-form")) {
+        e.preventDefault();
+        const form = e.target;
+        const url = form.action;
+        const formData = new FormData(form);
 
-                fetch(url, {
-                    method: "POST",
-                    body: formData,
-                    headers: {
-                        "X-Requested-With": "XMLHttpRequest"
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                if (data.status === "success") {
-                    const alertDiv = document.createElement("div");
-                    alertDiv.className = `alert alert-success mt-2 mb-0`;
-                    alertDiv.textContent = data.message;
-                    form.appendChild(alertDiv);
-
-                    setTimeout(() => {
-                        const seminarsLink = document.querySelector('.sidebar-link[href="#seminars"]');
-                        if (seminarsLink) seminarsLink.click();
-                    }, 1000);
-
-                    // Remove the alert after 3 seconds
-
-                        setTimeout(() => alertDiv.remove(), 3000);
-                    } else if (data.status === "error" && data.html) {
-                        // Replace the main content with the error form
-                        document.getElementById("mainContent").innerHTML = data.html;
-                    }
+        fetch(url, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                // Redirect to dashboard with hash
+                window.location.href = data.redirect_url;
+            } else if (data.status === "error" && data.html) {
+                // Replace the form content with error form
+                const container = document.getElementById("mainContent");
+                if (container) {
+                    container.innerHTML = data.html;
+                }
+            }
+        })
+        .catch(error => {
+            console.error("Form submission failed:", error);
+        });
+    
+    
 
 
-                })
-                .catch(err => {
-                    console.error("Form submission failed", err);
-                });
             }
         });
     });

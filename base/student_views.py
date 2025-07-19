@@ -152,8 +152,14 @@ def view_my_groups(request):
 
 @login_required
 def upload_seminar_work(request, group_id):
-    group = get_object_or_404(SeminarGroup, id=group_id, students=request.user.student)
-
+    student=get_object_or_404(Student, user=request.user)
+    group = get_object_or_404(SeminarGroup, id=group_id)
+    
+    #Only group leader can upload seminar work
+    if group.group_leader != student:
+        messages.error(request, "You are not authorized to upload work for this group.")
+        return redirect('registered_seminars')
+    
     if request.method == 'POST':
         form = SeminarWorkUploadForm(request.POST, request.FILES, instance=group)
         if form.is_valid():

@@ -23,12 +23,12 @@
                     {% if group.seminar_file %}
                         <a href="{{ group.seminar_file.url }}" target="_blank">View Submitted File</a>
                     {% else %}
-                        Not submitted |
-                        <a href="{% url 'upload_seminar_work' group.id %}" class="btn btn-sm btn-primary">
-                            Upload Seminar Work
-                        </a>
-
-
+                        Not submitted
+                        {% if request.user.student == group.group_leader %}
+                            | <a href="{% url 'upload_seminar_work' group.id %}" class="btn btn-sm btn-primary">
+                                Upload Seminar Work
+                              </a>
+                        {% endif %}
                     {% endif %}
                 </p>
 
@@ -38,9 +38,9 @@
                     <table class="table table-bordered">
                         <thead class="table-light">
                             <tr>
-                                
                                 <th>Registration Number</th>
                                 <th>Phone Number</th>
+                                <th>Role</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -48,6 +48,13 @@
                                 <tr>
                                     <td>{{ student.registration_number }}</td>
                                     <td>{{ student.phone_number }}</td>
+                                    <td>
+                                        {% if student == group.group_leader %}
+                                            <span class="badge bg-primary">Group Leader</span>
+                                        {% else %}
+                                            Member
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -59,5 +66,3 @@
 {% else %}
     <div class="alert alert-info">No group found for this seminar.</div>
 {% endif %}
-
- 

@@ -43,8 +43,58 @@ class InstructorDashboardView(LoginRequiredMixin, TemplateView):
         return super().render_to_response(context, **response_kwargs)
 
 
-# Add Seminar View
+from django.views.generic.edit import CreateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse, reverse_lazy
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+
+
+
+
 class AddSeminarView(LoginRequiredMixin, CreateView):
+    model = Seminar
+    form_class = AddSeminarForm
+    template_name = 'instructors_templates/includes/add_seminar.html'
+    success_url = reverse_lazy('instructor_dashboard')
+
+    def form_valid(self, form):
+        instructor = self.request.user.instructor
+        day = form.cleaned_data['day']
+        time = form.cleaned_data['time']
+        venue = form.cleaned_data['venue']
+
+        # Check for venue conflict
+        if Seminar.objects.filter(day=day, time=time, venue=venue).exists():
+            form.add_error('venue', "This venue is already taken for the selected day and time. Please choose another.")
+            return self.form_invalid(form)
+
+        # Assign instructor and save
+        form.instance.instructor = instructor
+        self.object = form.save()
+
+        # AJAX success response
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            dashboard_url = reverse("instructor_dashboard")  # e.g., /instructor/dashboard/
+            return JsonResponse({
+                "status": "success",
+                "redirect_url": dashboard_url + "#add_seminar"
+            })
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
+            html = render_to_string(
+                self.template_name,
+                {"form": form},
+                request=self.request
+            )
+            return JsonResponse({"status": "error", "html": html})
+        return super().form_invalid(form)
+    
+    
+'''class AddSeminarView(LoginRequiredMixin, CreateView):
     model = Seminar
     form_class = AddSeminarForm
     template_name = 'instructors_templates/includes/add_seminar.html'
@@ -79,7 +129,7 @@ class AddSeminarView(LoginRequiredMixin, CreateView):
     def render_to_response(self, context, **response_kwargs):
         if self.request.headers.get("x-requested-with") == "XMLHttpRequest":
             return render(self.request, self.template_name, context)
-        return super().render_to_response(context, **response_kwargs)
+        return super().render_to_response(context, **response_kwargs)'''
 
 # Instructor Seminars View
 class InstructorSeminarsView(View):
@@ -153,24 +203,17 @@ def upload_group_marks(request, group_id):
     group = get_object_or_404(SeminarGroup, id=group_id, seminar__instructor=request.user.instructor)
 
     if request.method == 'POST':
-        form = MarksUploadForm(request.POST, instance=group)
+        form = MarksUploadForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, f"Marks uploaded for Group {group.group_number}.")
-            return redirect('view_seminar_submissions', seminar_id=group.seminar.id)
-
-        else:
-            # Return the form with errors if it's submitted via AJAX
-            return render(request, 'instructors_templates/includes/upload_marks.html', {
-                'form': form,
-                'group': group
-            })
+            group.marks = form.cleaned_data['marks']
+            group.save()
+            messages.success(request, f"Marks updated for Group {group.group_number}")
+            return redirect('view_submissions', seminar_id=group.seminar.id)
     else:
-        form = MarksUploadForm(instance=group)
-        return render(request, 'instructors_templates/includes/upload_marks.html', {
-            'form': form,
-            'group': group
-        })
+        form = MarksUploadForm(initial={'marks': group.marks})
+
+    return render(request, 'instructors_templates/includes/upload_marks_modal.html',
+                  {'form': form, 'group': group})
 
 # Export Registered Students to PDF
 @login_required
@@ -227,17 +270,15 @@ def export_registered_students(request, seminar_id):
 
 
 # Export Group Members to PDF
-
 @login_required
 def export_group_members(request, seminar_id):
     seminar = get_object_or_404(Seminar, id=seminar_id, instructor=request.user.instructor)
-    groups = SeminarGroup.objects.filter(seminar=seminar).prefetch_related('students')
+    groups = SeminarGroup.objects.filter(seminar=seminar).prefetch_related('students', 'group_leader')
 
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
 
-    styles = getSampleStyleSheet()
     p.setFont("Helvetica-Bold", 14)
     p.drawString(50, height - 50, f"Seminar Groups for {seminar.course_code} - {seminar.day} at {seminar.time}")
 
@@ -248,12 +289,15 @@ def export_group_members(request, seminar_id):
         p.drawString(50, y_position, f"Group {group.group_number}")
         y_position -= 20
 
-        data = [["Name", "Registration Number", "Phone Number"]]
+        data = [["Name", "Registration Number", "Phone Number", "Role"]]
+
         for student in group.students.all():
             name = student.user.get_full_name() or student.user.username
-            data.append([name, student.registration_number, student.phone_number])
+            is_leader = student == group.group_leader
+            role = "Group Leader" if is_leader else "Member"
+            data.append([name, student.registration_number, student.phone_number, role])
 
-        table = Table(data, colWidths=[200, 150, 150])
+        table = Table(data, colWidths=[180, 140, 120, 100])
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
